@@ -16,7 +16,20 @@ vim.o.virtualedit = "block"
 vim.o.winborder = "rounded"
 vim.o.wrap = false
 vim.opt.completeopt:append({ "menuone", "noselect", "noinsert", "preview" })
+vim.opt.path:append({ "**" })
 
+vim.keymap.set("n", "<leader>/", function()
+  local cmd = ":vimgrep // % | copen"
+  local lefts = string.rep("<Left>", #cmd - cmd:find("/"))
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), 'n', true)
+end, { noremap = true, silent = true })
+vim.keymap.set("n", "<leader>fg", function()
+  local cmd = ":vimgrep // ** | copen"
+  local lefts = string.rep("<Left>", #cmd - cmd:find("/"))
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), 'n', true)
+end, { noremap = true, silent = true })
+vim.keymap.set("n", "<leader>ff", ":find *")
+vim.keymap.set("n", "<leader>fb", ":b *")
 vim.keymap.set("v", ">", ">gv")
 vim.keymap.set("v", "<", "<gv")
 vim.keymap.set("n", "<esc>", "<cmd>nohlsearch<cr><esc>")
@@ -27,7 +40,7 @@ vim.keymap.set("n", "N", "Nzzzv")
 vim.keymap.set("t", "<esc><esc>", "<c-\\><c-n>")
 vim.keymap.set("n", "-", vim.cmd.Explore)
 
-local augroup = function(name)
+_G.augroup = function(name)
   return vim.api.nvim_create_augroup("custom." .. name, { clear = true })
 end
 
@@ -56,8 +69,36 @@ vim.api.nvim_create_autocmd("BufEnter", {
   end,
 })
 
+vim.keymap.set("n", "<leader>q", function()
+  local is_qf_open = false
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "quickfix" then
+      is_qf_open = true
+      break
+    end
+  end
+  vim.cmd(is_qf_open and "cclose" or "copen")
+end, { noremap = true, silent = true })
+
+-- netrw
+-- credit: https://github.com/tpope/vim-vinegar
+vim.g.netrw_list_hide = [[\(^\|\s\s\)\zs\.\S\+]]
+vim.g.netrw_banner = 0
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'netrw',
+  callback = function()
+    vim.keymap.set('n', '-', function()
+      local dir = vim.b.netrw_curdir or vim.fn.expand('%:h')
+      vim.cmd('edit ' .. vim.fn.fnamemodify(dir, ':h'))
+    end, { buffer = true, silent = true })
+    vim.keymap.set('n', '~', ':edit ~/<CR>', { buffer = true, silent = true })
+  end,
+})
+
 -- persistent colorscheme
-_G.get_colorscheme = function(fallback)
+-- credit:
+-- https://github.com/folke/snacks.nvim/discussions/1239#discussioncomment-12555681
+local get_colorscheme = function(fallback)
   if not vim.g.COLORS_NAME then
     vim.cmd.rshada()
   end
@@ -67,7 +108,7 @@ _G.get_colorscheme = function(fallback)
   return vim.g.COLORS_NAME
 end
 
-_G.save_colorscheme = function(colorscheme)
+local save_colorscheme = function(colorscheme)
   colorscheme = colorscheme or vim.g.colors_name
   if get_colorscheme() == colorscheme then
     return
@@ -92,20 +133,8 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 })
 
 -- lsp
-vim.lsp.enable({
-  "ansiblels",
-  "basedpyright",
-  "bashls",
-  "cssls",
-  "docker_language_server",
-  "earthlyls",
-  "gopls",
-  "helm_ls",
-  "html",
-  "jsonls",
-  "lua_ls",
-  "nixd",
-})
+vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
+vim.keymap.set("n", "gd", vim.lsp.buf.definition)
 
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)
@@ -117,94 +146,24 @@ vim.api.nvim_create_autocmd("LspAttach", {
   end,
 })
 
-vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
-vim.keymap.set("n", "gd", vim.lsp.buf.definition)
-
 -- plugins
 vim.pack.add({
+  { src = "https://github.com/nvim-lua/plenary.nvim",           version = "master" },
   { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
-  "https://github.com/nvim-lua/plenary.nvim",
-  "https://github.com/zbirenbaum/copilot.lua",
-  "https://github.com/olimorris/codecompanion.nvim",
-  "https://github.com/ravitemer/mcphub.nvim",
-  "https://github.com/folke/snacks.nvim",
+  { src = "https://github.com/neovim/nvim-lspconfig", },
+  { src = "https://github.com/irohn/nix.nvim", },
+  { src = "https://github.com/zbirenbaum/copilot.lua", },
+  { src = "https://github.com/folke/snacks.nvim", },
+  { src = "https://github.com/stevearc/oil.nvim", },
+  { src = "https://github.com/olimorris/codecompanion.nvim" },
+  { src = "https://github.com/ravitemer/mcphub.nvim" },
 })
 
 vim.api.nvim_create_autocmd("PackChanged", {
-  group = augroup("plugins-update"),
+  group = augroup("reload-pack"),
   callback = function()
-    local ok, _ = pcall(vim.cmd("TSUpdate"))
-    if not ok then
-      vim.notify("Treesitter update failed", vim.log.levels.ERROR)
-    end
+    vim.cmd("TSUpdate")
   end,
 })
-
-require("nvim-treesitter").install({
-  "markdown",
-  "markdown_inline",
-  "lua",
-  "yaml",
-}):wait(300000) -- wait max 5 minutes
-
-local snacks = require("snacks")
-snacks.setup({
-  bigfile = { enabled = true },
-  picker = { enabled = true },
-  input = { enabled = true },
-})
-vim.keymap.set("n", "<leader>/", snacks.picker.lines)
-vim.keymap.set("n", "<leader>:", snacks.picker.command_history)
-vim.keymap.set("n", "<leader>fb", snacks.picker.buffers)
-vim.keymap.set("n", "<leader>ff", snacks.picker.files)
-vim.keymap.set("n", "<leader>fg", snacks.picker.grep)
-vim.keymap.set("n", "<leader>fh", snacks.picker.help)
-vim.keymap.set("n", "<leader>fk", snacks.picker.keymaps)
-vim.keymap.set("n", "<leader>fm", snacks.picker.marks)
-vim.keymap.set("n", "<leader>fq", snacks.picker.qflist)
-vim.keymap.set("n", "<leader>fs", snacks.picker.search_history)
-vim.keymap.set("n", "<leader>fu", snacks.picker.undo)
-vim.keymap.set("n", "<leader>gL", snacks.picker.git_log)
-vim.keymap.set("n", "<leader>gS", snacks.picker.git_stash)
-vim.keymap.set("n", "<leader>gb", snacks.picker.git_branches)
-vim.keymap.set("n", "<leader>gd", snacks.picker.git_diff)
-vim.keymap.set("n", "<leader>gf", snacks.picker.git_log_file)
-vim.keymap.set("n", "<leader>gl", snacks.picker.git_log_line)
-vim.keymap.set("n", "<leader>gs", snacks.picker.git_status)
-vim.keymap.set("n", "<leader>sD", snacks.picker.diagnostics)
-vim.keymap.set("n", "<leader>sd", snacks.picker.diagnostics_buffer)
-vim.keymap.set("n", "<leader>th", snacks.picker.colorschemes)
-
-require("copilot").setup({
-  suggestion = {
-    auto_trigger = true,
-    keymap = {
-      accept = "<s-tab>",
-      dismiss = "<c-c>",
-    },
-  },
-})
-
-require("codecompanion").setup({
-  display = {
-    chat = {
-      show_settings = true,
-    },
-  },
-  extensions = {
-    mcphub = {
-      callback = "mcphub.extensions.codecompanion",
-      opts = {
-        make_vars = true,
-        make_slash_commands = true,
-        show_result_in_chat = true
-      }
-    }
-  }
-})
-vim.keymap.set({ "n", "v" }, "<leader>aa", "<cmd>CodeCompanionActions<cr>", { noremap = true, silent = true })
-vim.keymap.set("v", "<leader>ae", ":CodeCompanion ", { noremap = true, silent = false })
-vim.keymap.set({ "n", "v" }, "<leader>ac", "<cmd>CodeCompanionChat Toggle<cr>", { noremap = true, silent = true })
-vim.keymap.set("v", "ga", "<cmd>CodeCompanionChat Add<cr>", { noremap = true, silent = true })
 
 -- vim: ts=2 sts=2 sw=2 et
