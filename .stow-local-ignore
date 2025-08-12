@@ -19,3 +19,14 @@ _darcs
 ^/README.*
 ^/LICENSE.*
 ^/COPYING
+
+\.DS_Store
+
+.*\.nix
+.*\.lock
+darwin/
+home/
+modules/
+nixos/
+secrets/
+
