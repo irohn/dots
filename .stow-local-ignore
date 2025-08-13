@@ -24,9 +24,9 @@ _darcs
 
 .*\.nix
 .*\.lock
-darwin/
-home/
-modules/
-nixos/
-secrets/
+darwin
+home
+modules
+nixos
+secrets
 
