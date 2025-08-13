@@ -2,7 +2,7 @@
 set -euo pipefail
 
 COLORS_PATH="$HOME/.config/tmux/colors"
-DEFAULT_COLORSCHEME="tomorrow-night"
+DEFAULT_COLORSCHEME="kanagawa-dragon.conf"
 CACHE_FILE="$HOME/.cache/tmux_colorscheme"
 
 load_from_cache() {

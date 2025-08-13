@@ -41,7 +41,7 @@ if [ -z "${TMUX:-}" ]; then
 fi
 
 tmux_session_name=$(tmux display-message -p '#S')
-tmux new-window -t "$tmux_session_name" -n gssh
+tmux new-window -t "$tmux_session_name" -n tssh
 tmux_session_id=$(tmux display-message -p '#I')
 
 host_count=$(echo "$selected_hosts" | wc -w)
