@@ -3,7 +3,7 @@ vim.opt.shiftwidth = 2
 vim.opt.softtabstop = 2
 vim.opt.expandtab = true
 
-vim.keymap.set("n", "<leader>w", ":w | source %<cr>")
+vim.keymap.set("n", "<localleader>w", ":w | source %<cr>")
 
 vim.treesitter.start()
 vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"

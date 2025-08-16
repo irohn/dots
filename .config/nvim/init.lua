@@ -1,5 +1,7 @@
 vim.g.mapleader = " "
+vim.g.maplocalleader = " "
 
+vim.o.breakindent = true
 vim.o.clipboard = "unnamedplus"
 vim.o.cursorline = true
 vim.o.expandtab = true
@@ -21,12 +23,12 @@ vim.opt.path:append({ "**" })
 vim.keymap.set("n", "<leader>/", function()
   local cmd = ":vimgrep // % | copen"
   local lefts = string.rep("<Left>", #cmd - cmd:find("/"))
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), 'n', true)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), "n", true)
 end, { noremap = true, silent = true })
 vim.keymap.set("n", "<leader>fg", function()
   local cmd = ":vimgrep // ** | copen"
   local lefts = string.rep("<Left>", #cmd - cmd:find("/"))
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), 'n', true)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), "n", true)
 end, { noremap = true, silent = true })
 vim.keymap.set("n", "<leader>ff", ":find *")
 vim.keymap.set("n", "<leader>fb", ":b *")
@@ -84,14 +86,14 @@ end, { noremap = true, silent = true })
 -- credit: https://github.com/tpope/vim-vinegar
 vim.g.netrw_list_hide = [[\(^\|\s\s\)\zs\.\S\+]]
 vim.g.netrw_banner = 0
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'netrw',
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "netrw",
   callback = function()
-    vim.keymap.set('n', '-', function()
-      local dir = vim.b.netrw_curdir or vim.fn.expand('%:h')
-      vim.cmd('edit ' .. vim.fn.fnamemodify(dir, ':h'))
+    vim.keymap.set("n", "-", function()
+      local dir = vim.b.netrw_curdir or vim.fn.expand("%:h")
+      vim.cmd("edit " .. vim.fn.fnamemodify(dir, ":h"))
     end, { buffer = true, silent = true })
-    vim.keymap.set('n', '~', ':edit ~/<CR>', { buffer = true, silent = true })
+    vim.keymap.set("n", "~", ":edit ~/<CR>", { buffer = true, silent = true })
   end,
 })
 
@@ -150,13 +152,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
 vim.pack.add({
   { src = "https://github.com/nvim-lua/plenary.nvim",           version = "master" },
   { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
-  { src = "https://github.com/neovim/nvim-lspconfig", },
-  { src = "https://github.com/irohn/nix.nvim", },
-  { src = "https://github.com/zbirenbaum/copilot.lua", },
-  { src = "https://github.com/folke/snacks.nvim", },
-  { src = "https://github.com/stevearc/oil.nvim", },
+  { src = "https://github.com/neovim/nvim-lspconfig" },
+  { src = "https://github.com/zbirenbaum/copilot.lua" },
+  { src = "https://github.com/folke/snacks.nvim" },
+  { src = "https://github.com/stevearc/oil.nvim" },
   { src = "https://github.com/olimorris/codecompanion.nvim" },
   { src = "https://github.com/ravitemer/mcphub.nvim" },
+  { src = "https://github.com/irohn/nix.nvim" },
 })
 
 vim.api.nvim_create_autocmd("PackChanged", {
