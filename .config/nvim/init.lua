@@ -162,9 +162,13 @@ vim.pack.add({
 })
 
 vim.api.nvim_create_autocmd("PackChanged", {
-  group = augroup("reload-pack"),
-  callback = function()
-    vim.cmd("TSUpdate")
+  pattern = "*",
+  callback = function(ev)
+    vim.notify(ev.data.spec.name .. " has been updated.")
+    if ev.data.spec.name == "nvim-treesitter"
+        and ev.data.spec.kind ~= "deleted" then
+      vim.cmd [[ TSUpdate ]]
+    end
   end,
 })
 
