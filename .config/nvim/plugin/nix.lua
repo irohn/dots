@@ -1,6 +1,7 @@
 require("nix").setup({
   lsp = {
     enabled = true,
+    override = true,
   },
   nixpkgs = {
     allow_unfree = true,
