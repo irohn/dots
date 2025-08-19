@@ -18,6 +18,7 @@
       ./home/librewolf.nix
       ./home/neovim.nix
       ./home/ripgrep.nix
+      ./home/ssh.nix
       ./home/starship.nix
       ./home/tmux.nix
       ./home/zoxide.nix

@@ -43,12 +43,10 @@ in {
   };
 
   programs.ssh = {
-    enable = true;
     includes = ["~/.ssh/greeneye_config"];
   };
 
   programs.git = {
-    enable = true;
     includes = [
       {
         condition = "gitdir:~/projects/greeneye/**";
