@@ -58,7 +58,6 @@ local function create_window()
   state.win = vim.api.nvim_open_win(state.buf, true, opts)
 
   -- Set window options
-  vim.api.nvim_set_option_value("winblend", 10, { win = state.win })
   vim.api.nvim_set_option_value("winhighlight", "Normal:Normal,FloatBorder:FloatBorder", { win = state.win })
 
   return state.buf, state.win
