@@ -158,18 +158,19 @@ vim.pack.add({
   { src = "https://github.com/stevearc/oil.nvim" },
   { src = "https://github.com/olimorris/codecompanion.nvim" },
   { src = "https://github.com/ravitemer/mcphub.nvim" },
-  { src = "https://github.com/irohn/nix.nvim" },
 })
 
 vim.api.nvim_create_autocmd("PackChanged", {
   pattern = "*",
   callback = function(ev)
     vim.notify(ev.data.spec.name .. " has been updated.")
-    if ev.data.spec.name == "nvim-treesitter"
-        and ev.data.spec.kind ~= "deleted" then
-      vim.cmd [[ TSUpdate ]]
+    if ev.data.spec.name == "nvim-treesitter" and ev.data.spec.kind ~= "deleted" then
+      vim.cmd("TSUpdate")
     end
   end,
 })
+
+require("lsp").setup()
+vim.keymap.set("n", "<leader>l", require("lsp.ui").toggle, { noremap = true, silent = true })
 
 -- vim: ts=2 sts=2 sw=2 et
