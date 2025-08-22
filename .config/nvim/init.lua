@@ -134,20 +134,6 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   end,
 })
 
--- lsp
-vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
-vim.keymap.set("n", "gd", vim.lsp.buf.definition)
-
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(args)
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if client ~= nil and client:supports_method("textDocument/completion") then
-      -- autocomplete
-      vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
-    end
-  end,
-})
-
 -- plugins
 vim.pack.add({
   { src = "https://github.com/nvim-lua/plenary.nvim",           version = "master" },
@@ -160,6 +146,22 @@ vim.pack.add({
   { src = "https://github.com/ravitemer/mcphub.nvim" },
 })
 
+-- lsp
+require("lsp-manager").setup()
+
+vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
+vim.keymap.set("n", "gd", vim.lsp.buf.definition)
+vim.keymap.set("n", "<leader>l", require("lsp-manager.ui").toggle, { noremap = true, silent = true })
+
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function(args)
+    local client = vim.lsp.get_client_by_id(args.data.client_id)
+    if client ~= nil and client:supports_method("textDocument/completion") then
+      vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+    end
+  end,
+})
+
 vim.api.nvim_create_autocmd("PackChanged", {
   pattern = "*",
   callback = function(ev)
@@ -169,8 +171,5 @@ vim.api.nvim_create_autocmd("PackChanged", {
     end
   end,
 })
-
-require("lsp").setup()
-vim.keymap.set("n", "<leader>l", require("lsp.ui").toggle, { noremap = true, silent = true })
 
 -- vim: ts=2 sts=2 sw=2 et

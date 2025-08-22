@@ -18,7 +18,7 @@ local function decode_server_list(text)
   local ok, decoded = pcall(vim.fn.json_decode, text)
   if not ok or type(decoded) ~= "table" then
     vim.notify(
-      ("[nix.lsp] Invalid JSON in cache '%s'; ignoring and resetting: %s")
+      ("[lsp-manager] Invalid JSON in cache '%s'; ignoring and resetting: %s")
       :format(path, ok and "not an array" or decoded),
       vim.log.levels.WARN
     )
