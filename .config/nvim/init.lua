@@ -138,20 +138,41 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 vim.pack.add({
   { src = "https://github.com/nvim-lua/plenary.nvim",           version = "master" },
   { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
-  { src = "https://github.com/neovim/nvim-lspconfig" },
   { src = "https://github.com/zbirenbaum/copilot.lua" },
   { src = "https://github.com/folke/snacks.nvim" },
   { src = "https://github.com/stevearc/oil.nvim" },
   { src = "https://github.com/olimorris/codecompanion.nvim" },
   { src = "https://github.com/ravitemer/mcphub.nvim" },
+  { src = "https://github.com/irohn/nix.nvim" },
+})
+
+require("nix").setup({
+  lsp_manager = {
+    enabled = {
+      "lua_ls",
+      "bashls",
+      "nixd"
+    },
+    window = {
+      headers = false
+    },
+  }
+})
+
+require("nvim-treesitter").install({
+  "c",
+  "lua",
+  "vim",
+  "vimdoc",
+  "query",
+  "markdown",
+  "markdown_inline"
 })
 
 -- lsp
-require("lsp-manager").setup()
-
+vim.keymap.set("n", "<c-l>", require("nix.lsp-manager.ui").toggle, { noremap = true, silent = true })
 vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
 vim.keymap.set("n", "gd", vim.lsp.buf.definition)
-vim.keymap.set("n", "<leader>l", require("lsp-manager.ui").toggle, { noremap = true, silent = true })
 
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function(args)

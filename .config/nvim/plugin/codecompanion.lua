@@ -5,6 +5,12 @@ local api_keys = {
 }
 
 require("codecompanion").setup({
+  display = {
+    chat = {
+      intro_message = "Press ? for options",
+      show_token_count = true,
+    },
+  },
   extensions = {
     mcphub = {
       callback = "mcphub.extensions.codecompanion",
