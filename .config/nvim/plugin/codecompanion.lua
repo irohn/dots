@@ -1,3 +1,7 @@
+if vim.fn.has('nvim-0.12') ~= 1 then
+  return
+end
+
 local api_keys = {
   anthropic = string.format("cmd:cat %s/agenix/anthropic-api-key.age", vim.env.XDG_RUNTIME_DIR),
   gemini = string.format("cmd:cat %s/agenix/gemini-api-key.age", vim.env.XDG_RUNTIME_DIR),

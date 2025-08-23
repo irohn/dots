@@ -1,3 +1,7 @@
+if vim.fn.has('nvim-0.12') ~= 1 then
+  return
+end
+
 local snacks = require("snacks")
 
 snacks.setup({

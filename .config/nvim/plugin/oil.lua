@@ -1,3 +1,7 @@
+if vim.fn.has('nvim-0.12') ~= 1 then
+  return
+end
+
 require("oil").setup({
 	win_options = {
 		signcolumn = "yes:1",

@@ -134,63 +134,66 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   end,
 })
 
--- plugins
-vim.pack.add({
-  { src = "https://github.com/nvim-lua/plenary.nvim",           version = "master" },
-  { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
-  { src = "https://github.com/zbirenbaum/copilot.lua" },
-  { src = "https://github.com/folke/snacks.nvim" },
-  { src = "https://github.com/stevearc/oil.nvim" },
-  { src = "https://github.com/olimorris/codecompanion.nvim" },
-  { src = "https://github.com/ravitemer/mcphub.nvim" },
-  { src = "https://github.com/irohn/nix.nvim" },
-})
+-- native package management (Neovim 0.12+)
+if vim.fn.has('nvim-0.12') == 1 then
+  vim.pack.add({
+    { src = "https://github.com/nvim-lua/plenary.nvim",           version = "master" },
+    { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
+    { src = "https://github.com/zbirenbaum/copilot.lua" },
+    { src = "https://github.com/folke/snacks.nvim" },
+    { src = "https://github.com/stevearc/oil.nvim" },
+    { src = "https://github.com/olimorris/codecompanion.nvim" },
+    { src = "https://github.com/ravitemer/mcphub.nvim" },
+    { src = "https://github.com/irohn/nix.nvim" },
+  })
 
-require("nix").setup({
-  lsp_manager = {
-    enabled = {
-      "lua_ls",
-      "bashls",
-      "nixd"
-    },
-    window = {
-      headers = false
-    },
-  }
-})
+  -- plugins
+  require("nix").setup({
+    lsp_manager = {
+      enabled = {
+        "lua_ls",
+        "bashls",
+        "nixd"
+      },
+      window = {
+        headers = false
+      },
+    }
+  })
 
-require("nvim-treesitter").install({
-  "c",
-  "lua",
-  "vim",
-  "vimdoc",
-  "query",
-  "markdown",
-  "markdown_inline"
-})
+  require("nvim-treesitter").install({
+    "c",
+    "lua",
+    "vim",
+    "vimdoc",
+    "query",
+    "markdown",
+    "markdown_inline"
+  })
 
--- lsp
-vim.keymap.set("n", "<c-l>", require("nix.lsp-manager.ui").toggle, { noremap = true, silent = true })
-vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
-vim.keymap.set("n", "gd", vim.lsp.buf.definition)
+  -- lsp
+  vim.keymap.set("n", "<c-l>", require("nix.lsp-manager.ui").toggle, { noremap = true, silent = true })
+  vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
+  vim.keymap.set("n", "gd", vim.lsp.buf.definition)
 
-vim.api.nvim_create_autocmd("LspAttach", {
-  callback = function(args)
-    local client = vim.lsp.get_client_by_id(args.data.client_id)
-    if client ~= nil and client:supports_method("textDocument/completion") then
-      vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
-    end
-  end,
-})
+  vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(args)
+      local client = vim.lsp.get_client_by_id(args.data.client_id)
+      if client ~= nil and client:supports_method("textDocument/completion") then
+        vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+      end
+    end,
+  })
 
-vim.api.nvim_create_autocmd("PackChanged", {
-  pattern = "*",
-  callback = function(ev)
-    vim.notify(ev.data.spec.name .. " has been updated.")
-    if ev.data.spec.name == "nvim-treesitter" and ev.data.spec.kind ~= "deleted" then
-      vim.cmd("TSUpdate")
-    end
-  end,
-})
+  vim.api.nvim_create_autocmd("PackChanged", {
+    pattern = "*",
+    callback = function(ev)
+      vim.notify(ev.data.spec.name .. " has been updated.")
+      if ev.data.spec.name == "nvim-treesitter" and ev.data.spec.kind ~= "deleted" then
+        vim.cmd("TSUpdate")
+      end
+    end,
+  })
+end
 
 -- vim: ts=2 sts=2 sw=2 et
