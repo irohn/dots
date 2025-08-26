@@ -1,8 +1,7 @@
-if vim.fn.has('nvim-0.12') ~= 1 then
-  return
-end
+local ok, copilot = pcall(require, "copilot")
+if not ok then return end
 
-require("copilot").setup({
+copilot.setup({
   suggestion = {
     auto_trigger = true,
     keymap = {

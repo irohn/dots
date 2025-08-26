@@ -1,6 +1,5 @@
-if vim.fn.has('nvim-0.12') ~= 1 then
-  return
-end
+local ok, codecompanion = pcall(require, "codecompanion")
+if not ok then return end
 
 local api_keys = {
   anthropic = string.format("cmd:cat %s/agenix/anthropic-api-key.age", vim.env.XDG_RUNTIME_DIR),
@@ -8,7 +7,7 @@ local api_keys = {
   openai = string.format("cmd:cat %s/agenix/openai-api-key.age", vim.env.XDG_RUNTIME_DIR),
 }
 
-require("codecompanion").setup({
+codecompanion.setup({
   display = {
     chat = {
       intro_message = "Press ? for options",

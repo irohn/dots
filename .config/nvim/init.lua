@@ -140,39 +140,35 @@ if vim.fn.has('nvim-0.12') == 1 then
     { src = "https://github.com/nvim-lua/plenary.nvim",           version = "master" },
     { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
     { src = "https://github.com/zbirenbaum/copilot.lua" },
-    { src = "https://github.com/folke/snacks.nvim" },
-    { src = "https://github.com/stevearc/oil.nvim" },
     { src = "https://github.com/olimorris/codecompanion.nvim" },
     { src = "https://github.com/ravitemer/mcphub.nvim" },
     { src = "https://github.com/irohn/nix.nvim" },
   })
+end
 
-  -- plugins
-  require("nix").setup({
+local nix_ok, nix = pcall(require, "nix")
+if nix_ok then
+  nix.setup({
+    plugin_manager = {
+      plugins = {
+        { pkg = "vimPlugins.oil-nvim" },
+        { pkg = "vimPlugins.snacks-nvim" },
+      },
+    },
     lsp_manager = {
       enabled = {
         "lua_ls",
         "bashls",
         "nixd"
       },
-      window = {
-        headers = false
-      },
     }
   })
+  vim.keymap.set("n", "<leader>P", require("nix.plugin-manager.ui").open, { noremap = true, silent = true })
+  vim.keymap.set("n", "<leader>L", require("nix.lsp-manager.ui").open, { noremap = true, silent = true })
+end
 
-  require("nvim-treesitter").install({
-    "c",
-    "lua",
-    "vim",
-    "vimdoc",
-    "query",
-    "markdown",
-    "markdown_inline"
-  })
-
-  -- lsp
-  vim.keymap.set("n", "<c-l>", require("nix.lsp-manager.ui").toggle, { noremap = true, silent = true })
+-- lsp
+if vim.fn.has('nvim-0.11') == 1 then
   vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
   vim.keymap.set("n", "gd", vim.lsp.buf.definition)
 
@@ -181,16 +177,6 @@ if vim.fn.has('nvim-0.12') == 1 then
       local client = vim.lsp.get_client_by_id(args.data.client_id)
       if client ~= nil and client:supports_method("textDocument/completion") then
         vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
-      end
-    end,
-  })
-
-  vim.api.nvim_create_autocmd("PackChanged", {
-    pattern = "*",
-    callback = function(ev)
-      vim.notify(ev.data.spec.name .. " has been updated.")
-      if ev.data.spec.name == "nvim-treesitter" and ev.data.spec.kind ~= "deleted" then
-        vim.cmd("TSUpdate")
       end
     end,
   })

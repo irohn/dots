@@ -1,8 +1,5 @@
-if vim.fn.has('nvim-0.12') ~= 1 then
-  return
-end
-
-local snacks = require("snacks")
+local ok, snacks = pcall(require, "snacks")
+if not ok then return end
 
 snacks.setup({
   bigfile = { enabled = true },
