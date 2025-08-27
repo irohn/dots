@@ -150,6 +150,7 @@ local nix_ok, nix = pcall(require, "nix")
 if nix_ok then
   nix.setup({
     plugin_manager = {
+      enabled = true,
       plugins = {
         { pkg = "vimPlugins.oil-nvim" },
         { pkg = "vimPlugins.snacks-nvim" },
