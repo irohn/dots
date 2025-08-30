@@ -138,8 +138,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 -- native package management (Neovim 0.12+)
 if vim.fn.has('nvim-0.12') == 1 then
   vim.pack.add({
-    { src = "https://github.com/nvim-lua/plenary.nvim",           version = "master" },
-    { src = "https://github.com/nvim-treesitter/nvim-treesitter", version = "main" },
+    { src = "https://github.com/nvim-lua/plenary.nvim",       version = "master" },
     { src = "https://github.com/zbirenbaum/copilot.lua" },
     { src = "https://github.com/olimorris/codecompanion.nvim" },
     { src = "https://github.com/ravitemer/mcphub.nvim" },
@@ -152,7 +151,22 @@ if nix_ok then
   nix.setup({
     plugin_manager = {
       enabled = true,
+      window = {
+        icons = {
+          enabled = "◼",
+          disabled = "◻",
+        },
+      },
       plugins = {
+        -- treesitter parsers
+        { pkg = "vimPlugins.nvim-treesitter-parsers.c" },
+        { pkg = "vimPlugins.nvim-treesitter-parsers.lua" },
+        { pkg = "vimPlugins.nvim-treesitter-parsers.vim" },
+        { pkg = "vimPlugins.nvim-treesitter-parsers.vimdoc" },
+        { pkg = "vimPlugins.nvim-treesitter-parsers.query" },
+        { pkg = "vimPlugins.nvim-treesitter-parsers.markdown" },
+        { pkg = "vimPlugins.nvim-treesitter-parsers.markdown_inline" },
+        -- utilities
         { pkg = "vimPlugins.oil-nvim" },
         { pkg = "vimPlugins.snacks-nvim" },
       },
@@ -162,6 +176,12 @@ if nix_ok then
         "lua_ls",
         "bashls",
         "nixd"
+      },
+      window = {
+        icons = {
+          enabled = "◼",
+          disabled = "◻",
+        },
       },
     }
   })
