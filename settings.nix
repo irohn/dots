@@ -16,6 +16,7 @@
       ./home/greeneye.nix
       ./home/k8s.nix
       ./home/librewolf.nix
+      ./home/localsend.nix
       ./home/neovim.nix
       ./home/ripgrep.nix
       ./home/ssh.nix
