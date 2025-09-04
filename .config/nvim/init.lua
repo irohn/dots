@@ -41,6 +41,7 @@ vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
 vim.keymap.set("n", "<leader>r", "<cmd>make<cr>")
 vim.keymap.set("t", "<esc><esc>", "<c-\\><c-n>")
+vim.keymap.set("t", "<c-w>", "<c-\\><c-n><c-w>")
 vim.keymap.set("n", "-", vim.cmd.Explore)
 
 _G.augroup = function(name)
@@ -135,59 +136,22 @@ vim.api.nvim_create_autocmd("ColorScheme", {
   end,
 })
 
--- native package management (Neovim 0.12+)
-if vim.fn.has('nvim-0.12') == 1 then
-  vim.pack.add({
-    { src = "https://github.com/nvim-lua/plenary.nvim",       version = "master" },
-    { src = "https://github.com/zbirenbaum/copilot.lua" },
-    { src = "https://github.com/olimorris/codecompanion.nvim" },
-    { src = "https://github.com/ravitemer/mcphub.nvim" },
-    { src = "https://github.com/irohn/nix.nvim" },
-  })
-end
+-- plugins
+vim.pack.add({
+  { src = "https://github.com/nvim-lua/plenary.nvim",       version = "master" },
+  { src = "https://github.com/stevearc/oil.nvim" },
+  { src = "https://github.com/folke/snacks.nvim" },
+  { src = "https://github.com/zbirenbaum/copilot.lua" },
+  { src = "https://github.com/MunifTanjim/nui.nvim" },
+  { src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
+  { src = "https://github.com/yetone/avante.nvim", version = "main" },
+})
 
-local nix_ok, nix = pcall(require, "nix")
-if nix_ok then
-  nix.setup({
-    plugin_manager = {
-      enabled = true,
-      window = {
-        icons = {
-          enabled = "◼",
-          disabled = "◻",
-        },
-      },
-      plugins = {
-        -- treesitter parsers
-        { pkg = "vimPlugins.nvim-treesitter-parsers.c" },
-        { pkg = "vimPlugins.nvim-treesitter-parsers.lua" },
-        { pkg = "vimPlugins.nvim-treesitter-parsers.vim" },
-        { pkg = "vimPlugins.nvim-treesitter-parsers.vimdoc" },
-        { pkg = "vimPlugins.nvim-treesitter-parsers.query" },
-        { pkg = "vimPlugins.nvim-treesitter-parsers.markdown" },
-        { pkg = "vimPlugins.nvim-treesitter-parsers.markdown_inline" },
-        -- utilities
-        { pkg = "vimPlugins.oil-nvim" },
-        { pkg = "vimPlugins.snacks-nvim" },
-      },
-    },
-    lsp_manager = {
-      enabled = {
-        "lua_ls",
-        "bashls",
-        "nixd"
-      },
-      window = {
-        icons = {
-          enabled = "◼",
-          disabled = "◻",
-        },
-      },
-    }
-  })
-  vim.keymap.set("n", "<leader>P", require("nix.plugin-manager.ui").open, { noremap = true, silent = true })
-  vim.keymap.set("n", "<leader>L", require("nix.lsp-manager.ui").open, { noremap = true, silent = true })
-end
+-- nix
+require("nix").setup({
+  lsp_manager = { enabled = true, }
+})
+vim.keymap.set("n", "<leader>L", "<cmd>NixLspManager<cr>", { noremap = true, silent = true })
 
 -- lsp
 if vim.fn.has('nvim-0.11') == 1 then
