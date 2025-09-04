@@ -3,6 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixos-25.05";
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -30,8 +31,9 @@
     // inputs.flake-utils.lib.eachDefaultSystem (
       system: let
         pkgs = inputs.nixpkgs.legacyPackages.${system};
+        pkgs-stable = inputs.nixpkgs-stable.legacyPackages.${system};
       in {
-        devShells.default = import ./shell.nix {inherit pkgs;};
+        devShells.default = import ./shell.nix {inherit pkgs pkgs-stable;};
       }
     );
 }

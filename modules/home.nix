@@ -1,5 +1,6 @@
 {
   nixpkgs,
+  nixpkgs-stable,
   home-manager,
   agenix,
   flake-utils,
@@ -26,6 +27,9 @@ in {
           inherit
             settings
             ;
+          pkgs-stable = import nixpkgs-stable {
+            inherit system;
+          };
         };
       };
     })

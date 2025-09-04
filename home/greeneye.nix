@@ -1,5 +1,6 @@
 {
   pkgs,
+  pkgs-stable,
   config,
   settings,
   ...
@@ -18,7 +19,8 @@ in {
     kubectl
     tailscale
     vault
-    azure-cli
+    ] ++ [
+    pkgs-stable.azure-cli
   ];
 
   home.file = {
