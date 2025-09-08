@@ -147,11 +147,28 @@ vim.pack.add({
   { src = "https://github.com/yetone/avante.nvim", version = "main" },
 })
 
+local target = vim.fn.stdpath("data") .. "/site/pack/nix.nvim"
+if not (vim.uv or vim.loop).fs_stat(target) then
+  local repo = "https://github.com/irohn/nix.nvim.git"
+  local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=refactor", repo, target })
+  if vim.v.shell_error ~= 0 then
+    vim.api.nvim_echo({
+      { "Failed to clone nix.nvim:\n", "ErrorMsg" },
+      { out,                           "WarningMsg" },
+      { "\nPress any key to exit..." },
+    }, true, {})
+    vim.fn.getchar()
+    os.exit(1)
+  end
+end
+vim.opt.rtp:prepend(target)
+
 -- nix
 require("nix").setup({
   lsp_manager = { enabled = true, }
 })
 vim.keymap.set("n", "<leader>L", "<cmd>NixLspManager<cr>", { noremap = true, silent = true })
+vim.keymap.set("n", "<leader>P", "<cmd>NixPluginManager<cr>", { noremap = true, silent = true })
 
 -- lsp
 if vim.fn.has('nvim-0.11') == 1 then
