@@ -18,6 +18,7 @@
       ./home/librewolf.nix
       ./home/localsend.nix
       ./home/neovim.nix
+      ./home/opencode.nix
       ./home/ripgrep.nix
       ./home/ssh.nix
       ./home/starship.nix
