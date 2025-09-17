@@ -19,6 +19,7 @@ vim.keymap.set("n", "<leader>fq", snacks.picker.qflist)
 vim.keymap.set("n", "<leader>fs", snacks.picker.search_history)
 vim.keymap.set("n", "<leader>fu", snacks.picker.undo)
 vim.keymap.set("n", "<leader>th", snacks.picker.colorschemes)
+vim.keymap.set("n", "<leader>e", snacks.picker.explorer)
 
 vim.keymap.set("n", "<leader>sD", snacks.picker.diagnostics)
 vim.keymap.set("n", "<leader>sd", snacks.picker.diagnostics_buffer)

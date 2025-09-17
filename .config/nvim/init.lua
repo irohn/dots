@@ -1,5 +1,6 @@
 vim.g.mapleader = " "
 vim.g.maplocalleader = " "
+vim.g.nerd_font = true
 
 vim.o.breakindent = true
 vim.o.clipboard = "unnamedplus"
