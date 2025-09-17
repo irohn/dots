@@ -24,4 +24,7 @@ if not render_markdown_ok then return end
 
 render_markdown.setup({
   file_types = { "markdown", "codecompanion", "Avante" },
+  code = {
+    border = "thin",
+  },
 })
