@@ -146,6 +146,7 @@ vim.pack.add({
 	{ src = "https://github.com/MunifTanjim/nui.nvim" },
 	{ src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
 	{ src = "https://github.com/yetone/avante.nvim", version = "main" },
+  { src=  "https://github.com/NickvanDyke/opencode.nvim" },
 })
 
 -- nix
