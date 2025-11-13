@@ -2,7 +2,7 @@
   homebrew = {
     enable = true;
     # 'zap': uninstalls all formulae(and related files) not listed here.
-    onActivation.cleanup = "zap";
+    # onActivation.cleanup = "zap";
     taps = [];
     brews = [];
     casks = [
@@ -13,6 +13,7 @@
       "scroll-reverser"
       "raycast"
       "slack"
+      "ollama-app"
       "stremio"
       "tailscale-app"
       "xquartz"

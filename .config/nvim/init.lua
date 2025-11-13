@@ -8,6 +8,7 @@ vim.o.cursorline = true
 vim.o.expandtab = true
 vim.o.ignorecase = true
 vim.o.inccommand = "split"
+vim.o.number = true
 vim.o.linebreak = true
 vim.o.signcolumn = "yes"
 vim.o.smartcase = true
