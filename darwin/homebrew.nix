@@ -8,6 +8,7 @@
     casks = [
       "alt-tab"
       "docker-desktop"
+      "k3d"
       "karabiner-elements"
       "keepingyouawake" # Prevent screen from turning off
       "scroll-reverser"
