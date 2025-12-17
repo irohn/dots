@@ -1,12 +1,14 @@
 {settings, ...}: {
   programs.git = {
     enable = true;
-    userName = settings.username;
-    userEmail = settings.email;
-    extraConfig = {
+    settings = {
+      user = {
+        name = settings.username;
+        email = settings.email;
+      };
       pull = {
         rebase = true;
       };
     };
   };
-}
+                 }
