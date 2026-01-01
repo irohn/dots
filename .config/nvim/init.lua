@@ -23,14 +23,14 @@ vim.opt.completeopt:append({ "menuone", "noselect", "noinsert", "preview" })
 vim.opt.path:append({ "**" })
 
 vim.keymap.set("n", "<leader>/", function()
-	local cmd = ":vimgrep // % | copen"
-	local lefts = string.rep("<Left>", #cmd - cmd:find("/"))
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), "n", true)
+  local cmd = ":vimgrep // % | copen"
+  local lefts = string.rep("<Left>", #cmd - cmd:find("/"))
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), "n", true)
 end, { noremap = true, silent = true })
 vim.keymap.set("n", "<leader>fg", function()
-	local cmd = ":vimgrep // ** | copen"
-	local lefts = string.rep("<Left>", #cmd - cmd:find("/"))
-	vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), "n", true)
+  local cmd = ":vimgrep // ** | copen"
+  local lefts = string.rep("<Left>", #cmd - cmd:find("/"))
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(cmd .. lefts, true, false, true), "n", true)
 end, { noremap = true, silent = true })
 vim.keymap.set("n", "<leader>ff", ":find *")
 vim.keymap.set("n", "<leader>fb", ":b *")
@@ -47,43 +47,43 @@ vim.keymap.set("t", "<c-w>", "<c-\\><c-n><c-w>")
 vim.keymap.set("n", "-", vim.cmd.Explore)
 
 _G.augroup = function(name)
-	return vim.api.nvim_create_augroup("custom." .. name, { clear = true })
+  return vim.api.nvim_create_augroup("custom." .. name, { clear = true })
 end
 
 vim.api.nvim_create_autocmd("TextYankPost", {
-	group = augroup("highlight-on-yank"),
-	callback = function()
-		vim.highlight.on_yank()
-	end,
+  group = augroup("highlight-on-yank"),
+  callback = function()
+    vim.highlight.on_yank()
+  end,
 })
 
 vim.api.nvim_create_autocmd("VimResized", {
-	group = augroup("auto-resize"),
-	callback = function()
-		vim.schedule(function()
-			local current_tab = vim.api.nvim_get_current_tabpage()
-			vim.cmd("tabdo wincmd =") -- Resize all windows on all tabs
-			vim.api.nvim_set_current_tabpage(current_tab)
-		end)
-	end,
+  group = augroup("auto-resize"),
+  callback = function()
+    vim.schedule(function()
+      local current_tab = vim.api.nvim_get_current_tabpage()
+      vim.cmd("tabdo wincmd =") -- Resize all windows on all tabs
+      vim.api.nvim_set_current_tabpage(current_tab)
+    end)
+  end,
 })
 
 vim.api.nvim_create_autocmd("BufEnter", {
-	group = augroup("disable-newline-comments"),
-	callback = function()
-		vim.opt.formatoptions:remove({ "c", "r", "o" })
-	end,
+  group = augroup("disable-newline-comments"),
+  callback = function()
+    vim.opt.formatoptions:remove({ "c", "r", "o" })
+  end,
 })
 
 vim.keymap.set("n", "<leader>q", function()
-	local is_qf_open = false
-	for _, win in ipairs(vim.api.nvim_list_wins()) do
-		if vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "quickfix" then
-			is_qf_open = true
-			break
-		end
-	end
-	vim.cmd(is_qf_open and "cclose" or "copen")
+  local is_qf_open = false
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.bo[vim.api.nvim_win_get_buf(win)].buftype == "quickfix" then
+      is_qf_open = true
+      break
+    end
+  end
+  vim.cmd(is_qf_open and "cclose" or "copen")
 end, { noremap = true, silent = true })
 
 -- netrw
@@ -91,104 +91,105 @@ end, { noremap = true, silent = true })
 vim.g.netrw_list_hide = [[\(^\|\s\s\)\zs\.\S\+]]
 vim.g.netrw_banner = 0
 vim.api.nvim_create_autocmd("FileType", {
-	pattern = "netrw",
-	callback = function()
-		vim.keymap.set("n", "-", function()
-			local dir = vim.b.netrw_curdir or vim.fn.expand("%:h")
-			vim.cmd("edit " .. vim.fn.fnamemodify(dir, ":h"))
-		end, { buffer = true, silent = true })
-		vim.keymap.set("n", "~", ":edit ~/<CR>", { buffer = true, silent = true })
-	end,
+  pattern = "netrw",
+  callback = function()
+    vim.keymap.set("n", "-", function()
+      local dir = vim.b.netrw_curdir or vim.fn.expand("%:h")
+      vim.cmd("edit " .. vim.fn.fnamemodify(dir, ":h"))
+    end, { buffer = true, silent = true })
+    vim.keymap.set("n", "~", ":edit ~/<CR>", { buffer = true, silent = true })
+  end,
 })
 
 -- persistent colorscheme
 -- credit:
 -- https://github.com/folke/snacks.nvim/discussions/1239#discussioncomment-12555681
 local get_colorscheme = function(fallback)
-	if not vim.g.COLORS_NAME then
-		vim.cmd.rshada()
-	end
-	if not vim.g.COLORS_NAME or vim.g.COLORS_NAME == "" then
-		return fallback or "default"
-	end
-	return vim.g.COLORS_NAME
+  if not vim.g.COLORS_NAME then
+    vim.cmd.rshada()
+  end
+  if not vim.g.COLORS_NAME or vim.g.COLORS_NAME == "" then
+    return fallback or "default"
+  end
+  return vim.g.COLORS_NAME
 end
 
 local save_colorscheme = function(colorscheme)
-	colorscheme = colorscheme or vim.g.colors_name
-	if get_colorscheme() == colorscheme then
-		return
-	end
-	vim.g.COLORS_NAME = colorscheme
-	vim.cmd.wshada()
+  colorscheme = colorscheme or vim.g.colors_name
+  if get_colorscheme() == colorscheme then
+    return
+  end
+  vim.g.COLORS_NAME = colorscheme
+  vim.cmd.wshada()
 end
 
 vim.api.nvim_create_autocmd("VimEnter", {
-	group = augroup("load-persistent-colorscheme"),
-	callback = function()
-		pcall(vim.cmd.colorscheme, get_colorscheme())
-		return vim.g.colors_name == get_colorscheme("default")
-	end,
+  group = augroup("load-persistent-colorscheme"),
+  callback = function()
+    pcall(vim.cmd.colorscheme, get_colorscheme())
+    return vim.g.colors_name == get_colorscheme("default")
+  end,
 })
 
 vim.api.nvim_create_autocmd("ColorScheme", {
-	group = augroup("save-colorscheme-after-change"),
-	callback = function()
-		save_colorscheme(vim.g.colors_name)
-	end,
+  group = augroup("save-colorscheme-after-change"),
+  callback = function()
+    save_colorscheme(vim.g.colors_name)
+  end,
 })
 
 -- plugins
 vim.pack.add({
-	{ src = "https://github.com/nvim-lua/plenary.nvim", version = "master" },
-	{ src = "https://github.com/stevearc/oil.nvim" },
-	{ src = "https://github.com/folke/snacks.nvim" },
-	{ src = "https://github.com/zbirenbaum/copilot.lua" },
-	{ src = "https://github.com/MunifTanjim/nui.nvim" },
-	{ src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
-	{ src = "https://github.com/yetone/avante.nvim", version = "main" },
-  { src=  "https://github.com/NickvanDyke/opencode.nvim" },
+  { src = "https://github.com/nvim-lua/plenary.nvim",                    version = "master" },
+  { src = "https://github.com/stevearc/oil.nvim" },
+  { src = "https://github.com/folke/snacks.nvim" },
+  { src = "https://github.com/zbirenbaum/copilot.lua" },
+  { src = "https://github.com/MunifTanjim/nui.nvim" },
+  { src = "https://github.com/MeanderingProgrammer/render-markdown.nvim" },
+  { src = "https://github.com/yetone/avante.nvim",                       version = "main" },
+  { src = "https://github.com/NickvanDyke/opencode.nvim" },
+  { src = "https://github.com/stevearc/conform.nvim" },
 })
 
 -- nix
 local target = vim.fn.stdpath("data") .. "/site/pack/nix.nvim"
 local stat = (vim.uv or vim.loop).fs_lstat(target)
 if not (stat and stat.type == "link") then
-	if not (vim.uv or vim.loop).fs_stat(target) then
-		local repo = "https://github.com/irohn/nix.nvim.git"
-		local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=refactor", repo, target })
-		if vim.v.shell_error ~= 0 then
-			vim.api.nvim_echo({
-				{ "Failed to clone nix.nvim:\n", "ErrorMsg" },
-				{ out, "WarningMsg" },
-				{ "\nPress any key to exit..." },
-			}, true, {})
-			vim.fn.getchar()
-			os.exit(1)
-		end
-	end
+  if not (vim.uv or vim.loop).fs_stat(target) then
+    local repo = "https://github.com/irohn/nix.nvim.git"
+    local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=refactor", repo, target })
+    if vim.v.shell_error ~= 0 then
+      vim.api.nvim_echo({
+        { "Failed to clone nix.nvim:\n", "ErrorMsg" },
+        { out,                           "WarningMsg" },
+        { "\nPress any key to exit..." },
+      }, true, {})
+      vim.fn.getchar()
+      os.exit(1)
+    end
+  end
 end
 vim.opt.rtp:prepend(target)
 
 require("nix").setup({
-	lsp_manager = { enabled = true },
+  lsp_manager = { enabled = true },
 })
 vim.keymap.set("n", "<leader>L", "<cmd>NixLspManager<cr>", { noremap = true, silent = true })
 vim.keymap.set("n", "<leader>P", "<cmd>NixPluginManager<cr>", { noremap = true, silent = true })
 
 -- lsp
 if vim.fn.has("nvim-0.11") == 1 then
-	vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
-	vim.keymap.set("n", "gd", vim.lsp.buf.definition)
+  -- vim.keymap.set("n", "<c-f>", vim.lsp.buf.format)
+  vim.keymap.set("n", "gd", vim.lsp.buf.definition)
 
-	vim.api.nvim_create_autocmd("LspAttach", {
-		callback = function(args)
-			local client = vim.lsp.get_client_by_id(args.data.client_id)
-			if client ~= nil and client:supports_method("textDocument/completion") then
-				vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
-			end
-		end,
-	})
+  vim.api.nvim_create_autocmd("LspAttach", {
+    callback = function(args)
+      local client = vim.lsp.get_client_by_id(args.data.client_id)
+      if client ~= nil and client:supports_method("textDocument/completion") then
+        vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+      end
+    end,
+  })
 end
 
 -- vim: ts=2 sts=2 sw=2 et

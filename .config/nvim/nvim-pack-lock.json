@@ -5,6 +5,10 @@
       "src": "https://github.com/yetone/avante.nvim",
       "version": "'main'"
     },
+    "conform.nvim": {
+      "rev": "5420c4b5ea0aeb99c09cfbd4fd0b70d257b44f25",
+      "src": "https://github.com/stevearc/conform.nvim"
+    },
     "copilot.lua": {
       "rev": "81d289a8ce5d4ee1dea9b1c8ee4ac376b2e27a5f",
       "src": "https://github.com/zbirenbaum/copilot.lua"
