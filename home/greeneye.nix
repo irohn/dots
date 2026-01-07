@@ -7,7 +7,7 @@
 }: let
   dev-utils = builtins.fetchGit {
     url = "ssh://git@github.com/greeneyetechnology/dev-utils.git";
-    rev = "d2e91560d90633f8999a4a8231a265b2b9313b18";
+    rev = "ac82d6f751e275a0e40cc81fcb173f0af20cc19b";
   };
 in {
   home.packages = with pkgs; [
