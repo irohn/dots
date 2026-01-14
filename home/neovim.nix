@@ -4,10 +4,12 @@
     gcc
     gnumake
     neovim
-    nodejs # for copilot
     ripgrep
     tree-sitter
     lazygit
+    nodejs # for copilot
+    go # for gopls
+    cargo # for rust-analyzer
   ];
 
   home.sessionVariables = {

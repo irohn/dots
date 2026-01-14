@@ -4,6 +4,7 @@ vim.g.maplocalleader = " "
 
 -- options
 vim.o.breakindent = true
+vim.o.clipboard = "unnamedplus"
 vim.o.cursorline = true
 vim.o.expandtab = true
 vim.o.ignorecase = true
