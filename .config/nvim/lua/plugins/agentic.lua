@@ -1,6 +1,6 @@
 return {
-	"agentic.nvim",
-	github = "carlos-algms/agentic.nvim",
+	"carlos-algms/agentic.nvim",
+	source = "github",
 	config = function()
 		require("agentic").setup({
 			provider = "opencode-acp",

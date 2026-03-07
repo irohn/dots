@@ -136,6 +136,17 @@ local function plugin_link_path(name)
 	return join(ensure_pack_dir(), name)
 end
 
+local function github_repo_name(repo)
+	return (repo:gsub("%.git$", ""):match("/([^/]+)$") or repo)
+end
+
+local function clone_dir_name(spec)
+	if type(spec.repo) == "string" and spec.repo ~= "" then
+		return spec.repo:gsub("%.git$", ""):gsub("[/\\:]", "__")
+	end
+	return spec.name
+end
+
 local function existing_link(spec)
 	local link_path = plugin_link_path(spec.name)
 	if exists(link_path) then
@@ -171,7 +182,7 @@ local function build_plugin(spec)
 	end
 
 	if type(spec.url) == "string" and spec.url ~= "" then
-		local clone_dir = join(vim.fn.stdpath("data"), "nix", "repos", spec.name)
+		local clone_dir = join(vim.fn.stdpath("data"), "nix", "repos", clone_dir_name(spec))
 		if not exists(clone_dir) then
 			vim.fn.mkdir(vim.fn.fnamemodify(clone_dir, ":h"), "p")
 			local clone = vim.system({ "git", "clone", "--filter=blob:none", spec.url, clone_dir }, { text = true }):wait()
@@ -255,7 +266,7 @@ local function build_plugin_async(spec, cb)
 	end
 
 	if type(spec.url) == "string" and spec.url ~= "" then
-		local clone_dir = join(vim.fn.stdpath("data"), "nix", "repos", spec.name)
+		local clone_dir = join(vim.fn.stdpath("data"), "nix", "repos", clone_dir_name(spec))
 		vim.fn.mkdir(vim.fn.fnamemodify(clone_dir, ":h"), "p")
 
 		local cmd
@@ -349,18 +360,35 @@ end
 
 local function normalize_spec(input)
 	if type(input) == "string" then
-		return { name = input, lazy = false, async = true, dependencies = {} }
+		return { name = input, source = "nixpkgs", lazy = false, async = true, dependencies = {} }
 	end
 
 	local spec = vim.deepcopy(input)
-	spec.name = spec.name or spec[1]
+	local explicit_name = type(spec.name) == "string" and spec.name ~= ""
+	local identifier = spec[1]
 	spec[1] = nil
-	if type(spec.name) ~= "string" or spec.name == "" then
-		error("nix.nvim: plugin spec must have a plugin name at index 1")
+	spec.source = spec.source or (spec.github and "github" or "nixpkgs")
+
+	if spec.source == "github" then
+		spec.repo = spec.repo or spec.github or identifier or spec.name
+		if type(spec.repo) ~= "string" or spec.repo == "" then
+			error("nix.nvim: github plugin spec must provide an owner/repo identifier")
+		end
+		spec.repo = spec.repo:gsub("%.git$", "")
+		if not explicit_name then
+			spec.name = github_repo_name(spec.repo)
+		end
+		if spec.url == nil then
+			spec.url = ("https://github.com/%s.git"):format(spec.repo)
+		end
+	elseif spec.source == "nixpkgs" then
+		spec.name = spec.name or identifier
+	else
+		error(("nix.nvim: unsupported plugin source '%s'"):format(tostring(spec.source)))
 	end
 
-	if type(spec.github) == "string" and spec.github ~= "" and spec.url == nil then
-		spec.url = ("https://github.com/%s.git"):format(spec.github)
+	if type(spec.name) ~= "string" or spec.name == "" then
+		error("nix.nvim: plugin spec must have a plugin name")
 	end
 
 	if spec.lazy == nil then
