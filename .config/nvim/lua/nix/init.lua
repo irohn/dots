@@ -3,6 +3,7 @@ local uv = vim.uv or vim.loop
 local M = {}
 local conform_adapter = require("nix.adapters.conform")
 local lsp_adapter = require("nix.adapters.lsp")
+local util = require("nix.util")
 
 M.adapters = {
 	conform = conform_adapter,
@@ -24,9 +25,7 @@ local state = {
 	emitted_loaded = {},
 }
 
-local function join(...)
-	return table.concat({ ... }, "/")
-end
+local join = util.join
 
 local function listify(value)
 	if value == nil then
@@ -93,9 +92,7 @@ local function collect_import_specs(imports)
 	return specs
 end
 
-local function exists(path)
-	return uv.fs_stat(path) ~= nil
-end
+local exists = util.exists
 
 local function has_runtime_layout(path)
 	for _, name in ipairs({ "plugin", "lua", "autoload", "ftdetect", "syntax", "colors", "doc" }) do
@@ -218,15 +215,11 @@ local function build_plugin(spec)
 	end
 
 	local target = (spec.nixpkgs or "nixpkgs") .. "#vimPlugins." .. spec.name
-	local proc = vim.system({ "nix", "build", "--no-link", "--print-out-paths", target }, { text = true }):wait()
-	if proc.code ~= 0 then
-		vim.notify(("nix.nvim: failed to build %s\n%s"):format(target, proc.stderr or ""), vim.log.levels.ERROR)
-		return nil
-	end
-
-	local out_path = vim.trim(proc.stdout or "")
-	if out_path == "" then
-		vim.notify(("nix.nvim: empty build output for %s"):format(target), vim.log.levels.ERROR)
+	local out_path = util.build({
+		target = target,
+		error_prefix = "nix.nvim",
+	})
+	if not out_path then
 		return nil
 	end
 
@@ -312,49 +305,42 @@ local function build_plugin_async(spec, cb)
 	end
 
 	local target = (spec.nixpkgs or "nixpkgs") .. "#vimPlugins." .. spec.name
-	vim.system({ "nix", "build", "--no-link", "--print-out-paths", target }, { text = true }, function(proc)
-		vim.schedule(function()
-			if proc.code ~= 0 then
-				vim.notify(("nix.nvim: failed to build %s\n%s"):format(target, proc.stderr or ""), vim.log.levels.ERROR)
-				cb(nil)
-				return
-			end
+	util.build_async({
+		target = target,
+		error_prefix = "nix.nvim",
+	}, function(out_path)
+		if not out_path then
+			cb(nil)
+			return
+		end
 
-			local out_path = vim.trim(proc.stdout or "")
-			if out_path == "" then
-				vim.notify(("nix.nvim: empty build output for %s"):format(target), vim.log.levels.ERROR)
-				cb(nil)
-				return
-			end
+		local root = resolve_plugin_root(out_path, spec.name)
+		if not root then
+			vim.notify(
+				("nix.nvim: could not locate runtime directory for %s in %s"):format(spec.name, out_path),
+				vim.log.levels.ERROR
+			)
+			cb(nil)
+			return
+		end
 
-			local root = resolve_plugin_root(out_path, spec.name)
-			if not root then
-				vim.notify(
-					("nix.nvim: could not locate runtime directory for %s in %s"):format(spec.name, out_path),
-					vim.log.levels.ERROR
-				)
-				cb(nil)
-				return
-			end
+		local opt_dir = ensure_pack_dir()
+		local link_path = join(opt_dir, spec.name)
+		if exists(link_path) then
+			vim.fn.delete(link_path, "rf")
+		end
 
-			local opt_dir = ensure_pack_dir()
-			local link_path = join(opt_dir, spec.name)
-			if exists(link_path) then
-				vim.fn.delete(link_path, "rf")
-			end
+		local ok, err = uv.fs_symlink(root, link_path)
+		if not ok then
+			vim.notify(
+				("nix.nvim: failed to link %s -> %s (%s)"):format(link_path, root, err or "unknown"),
+				vim.log.levels.ERROR
+			)
+			cb(nil)
+			return
+		end
 
-			local ok, err = uv.fs_symlink(root, link_path)
-			if not ok then
-				vim.notify(
-					("nix.nvim: failed to link %s -> %s (%s)"):format(link_path, root, err or "unknown"),
-					vim.log.levels.ERROR
-				)
-				cb(nil)
-				return
-			end
-
-			cb(link_path)
-		end)
+		cb(link_path)
 	end)
 end
 
