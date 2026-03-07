@@ -2,8 +2,15 @@ return {
 	"carlos-algms/agentic.nvim",
 	source = "github",
 	config = function()
+		local nix_util = require("nix.util")
+
 		require("agentic").setup({
-			provider = "opencode-acp",
+			provider = "codex-acp",
+			acp_providers = {
+				["codex-acp"] = {
+					command = nix_util.command("codex-acp"),
+				},
+			},
 		})
 
 		vim.keymap.set({ "n" }, "<leader>aa", function()

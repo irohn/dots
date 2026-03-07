@@ -5,7 +5,7 @@ return {
 		vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"
 	end,
 	config = function()
-		local cmd = require("nix.adapters.conform").cmd
+		local nix_util = require("nix.util")
 
 		require("conform").setup({
 			formatters_by_ft = {
@@ -21,19 +21,25 @@ return {
 			formatters = {
 				shfmt = {
 					append_args = { "-i", "2" },
-					command = cmd("shfmt", "shfmt"),
+					command = nix_util.command("shfmt"),
 				},
 				alejandra = {
-					command = cmd("alejandra", "alejandra"),
+					command = nix_util.command("alejandra"),
 				},
 				stylua = {
-					command = cmd("stylua", "stylua"),
+					command = nix_util.command("stylua"),
 				},
 				black = {
-					command = cmd("python3Packages.black", "black"),
+					command = nix_util.command({
+						attr = "python3Packages.black",
+						bin = "black",
+					}),
 				},
 				isort = {
-					command = cmd("python3Packages.isort", "isort"),
+					command = nix_util.command({
+						attr = "python3Packages.isort",
+						bin = "isort",
+					}),
 				},
 			},
 		})

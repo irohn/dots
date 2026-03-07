@@ -1,16 +1,7 @@
 local uv = vim.uv or vim.loop
 
 local M = {}
-local conform_adapter = require("nix.adapters.conform")
-local lsp_adapter = require("nix.adapters.lsp")
 local util = require("nix.util")
-
-M.adapters = {
-	conform = conform_adapter,
-	lsp = lsp_adapter,
-}
-M.conform = conform_adapter
-M.lsp = lsp_adapter
 
 local state = {
 	specs = {},
@@ -843,8 +834,7 @@ function M.setup(opts)
 	if opts.nixpkgs and type(opts.nixpkgs) == "string" then
 		state.default_nixpkgs = opts.nixpkgs
 	end
-	M.conform.set_default_nixpkgs(state.default_nixpkgs)
-	M.lsp.set_default_nixpkgs(state.default_nixpkgs)
+	util.set_default_nixpkgs(state.default_nixpkgs)
 
 	for _, plugin in ipairs(collect_import_specs(opts.import)) do
 		register_spec(normalize_spec(plugin))
@@ -881,7 +871,5 @@ function M.setup(opts)
 		end
 	end
 end
-
-M.lsp.set_nix_api(M)
 
 return M

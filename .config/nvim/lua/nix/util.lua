@@ -1,6 +1,7 @@
 local uv = vim.uv or vim.loop
 
 local M = {}
+M.default_nixpkgs = nil
 
 local cache = {}
 local inflight = {}
@@ -46,14 +47,64 @@ local function write_cached_path(path, resolved_path)
 	pcall(vim.fn.writefile, { resolved_path }, path)
 end
 
-function M.set_default_nixpkgs(target, nixpkgs)
+function M.set_default_nixpkgs(nixpkgs)
 	if type(nixpkgs) == "string" and nixpkgs ~= "" then
-		target.default_nixpkgs = nixpkgs
+		M.default_nixpkgs = nixpkgs
 	end
 end
 
 function M.resolve_nixpkgs(explicit, default_nixpkgs)
-	return explicit or default_nixpkgs or "nixpkgs"
+	return explicit or default_nixpkgs or M.default_nixpkgs or "nixpkgs"
+end
+
+local function normalize_command_spec(spec)
+	if type(spec) == "string" and spec ~= "" then
+		return {
+			attr = spec,
+			bin = spec,
+			args = nil,
+			async = false,
+		}
+	end
+
+	if type(spec) ~= "table" then
+		error("nix.util.command: spec must be a non-empty string or table")
+	end
+
+	local attr = spec.attr or spec[1]
+	if type(attr) ~= "string" or attr == "" then
+		error("nix.util.command: attr must be a non-empty string")
+	end
+
+	local bin = spec.bin or attr
+	if type(bin) ~= "string" or bin == "" then
+		error("nix.util.command: bin must be a non-empty string")
+	end
+
+	local args = spec.args
+	if args ~= nil and type(args) ~= "table" then
+		error("nix.util.command: args must be a list when provided")
+	end
+
+	return {
+		attr = attr,
+		bin = bin,
+		args = args,
+		async = spec.async == true,
+		nixpkgs = spec.nixpkgs,
+	}
+end
+
+local function materialize_command(bin_path, args)
+	if type(args) ~= "table" or vim.tbl_isempty(args) then
+		return bin_path
+	end
+
+	local cmd = { bin_path }
+	for _, arg in ipairs(args) do
+		table.insert(cmd, arg)
+	end
+	return cmd
 end
 
 local function cache_state(opts)
@@ -160,6 +211,47 @@ function M.build_async(opts, cb)
 			end
 		end)
 	end)
+end
+
+function M.command(spec, cb)
+	local cmd_spec = normalize_command_spec(spec)
+	local nixpkgs = M.resolve_nixpkgs(cmd_spec.nixpkgs, M.default_nixpkgs)
+	local key = nixpkgs .. "#" .. cmd_spec.attr .. "::" .. cmd_spec.bin
+	local target = nixpkgs .. "#" .. cmd_spec.attr
+	local build_opts = {
+		target = target,
+		bin = cmd_spec.bin,
+		cache_dir = { "command" },
+		cache_key = key,
+		error_prefix = "nix.nvim command",
+	}
+
+	local function on_resolved(bin_path)
+		local command = materialize_command(bin_path, cmd_spec.args)
+		if type(cb) == "function" then
+			cb(command)
+		end
+		return command
+	end
+
+	if cmd_spec.async then
+		M.build_async(build_opts, function(bin_path)
+			if not bin_path then
+				return
+			end
+			on_resolved(bin_path)
+		end)
+		if type(cb) == "function" then
+			return
+		end
+		return materialize_command(cmd_spec.bin, cmd_spec.args)
+	end
+
+	local bin_path = M.build(build_opts)
+	if not bin_path then
+		return materialize_command(cmd_spec.bin, cmd_spec.args)
+	end
+	return on_resolved(bin_path)
 end
 
 return M
