@@ -1,47 +1,54 @@
 return {
-	"stevearc/oil.nvim",
+	"oil-nvim",
 	lazy = false,
-	opts = {
-		win_options = {
-			signcolumn = "yes:1",
-			number = false,
-			relativenumber = false,
-		},
-		keymaps = {
-			["gd"] = {
-				desc = "Toggle file detail view",
-				callback = (function()
-					local detail = false
-					return function()
-						detail = not detail
-						if detail then
-							require("oil").set_columns({ "icon", "permissions", "size", "mtime" })
-						else
-							require("oil").set_columns({ "icon" })
+	init = function()
+		vim.g.loaded_netrw = 1
+		vim.g.loaded_netrwplugin = 1
+	end,
+	dependencies = {
+		{ "nvim-web-devicons", lazy = false },
+	},
+	config = function()
+		require("oil").setup({
+			win_options = {
+				signcolumn = "yes:1",
+				number = false,
+				relativenumber = false,
+			},
+			keymaps = {
+				["gd"] = {
+					desc = "Toggle file detail view",
+					callback = (function()
+						local detail = false
+						return function()
+							detail = not detail
+							if detail then
+								require("oil").set_columns({ "icon", "permissions", "size", "mtime" })
+							else
+								require("oil").set_columns({ "icon" })
+							end
+						end
+					end)(),
+				},
+			},
+			view_options = {
+				show_hidden = true,
+				is_always_hidden = function(name, _)
+					local hidden_dirs = { "..", ".git", ".direnv" }
+					for _, dir in ipairs(hidden_dirs) do
+						if name == dir then
+							return true
 						end
 					end
-				end)(),
+					return false
+				end,
 			},
-		},
-		view_options = {
-			show_hidden = true,
-			is_always_hidden = function(name, _)
-				local hidden_dirs = { "..", ".git", ".direnv" }
-				for _, dir in ipairs(hidden_dirs) do
-					if name == dir then
-						return true
-					end
-				end
-				return false
-			end,
-		},
-		float = {
-			max_width = 0.5,
-			max_height = 0.5,
-			border = "rounded",
-		},
-	},
-	keys = {
-		{ "-", "<cmd>Oil<cr>" },
-	},
+			float = {
+				max_width = 0.5,
+				max_height = 0.5,
+				border = "rounded",
+			},
+		})
+		vim.keymap.set("n", "-", "<cmd>Oil<cr>")
+	end,
 }

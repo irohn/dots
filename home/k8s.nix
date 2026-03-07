@@ -14,7 +14,8 @@
     wp = "watch -n 0.1 'kubectl get pods --all-namespaces'";
     fl = "flux logs --all-namespaces";
     fra = "flux reconcile kustomization flux-system --with-source";
-    nodes = "kubectl get nodes -o custom-columns=\"LOCATION:.metadata.labels['node\\.greeneye\\.ag/location'],NAME:.metadata.name,STATUS:.status.conditions[?(@.type=='Ready')].status,ROLES:.metadata.labels['kubernetes\\.io/role'],AGE:.metadata.creationTimestamp,VERSION:.status.nodeInfo.kubeletVersion,INTERNAL-IP:.status.addresses[?(@.type=='InternalIP')].address\"";
+    nodes = "kubectl get nodes -o custom-columns=\"LOCATION:.metadata.labels['node\\.greeneye\\.ag/location'],NAME:.metadata.name,STATUS:.status.conditions[?(@.type=='Ready')].status,ROLES:.metadata.labels['kubernetes\\.io/role'],AGE:.metadata.creationTimestamp,VERSION:.status.nodeInfo.kubeletVersion,INTERNAL-IP:.status.addresses[?(@.type=='InternalIP')].address,TAINTS:.spec.taints\"";
+    wn = "watch \"kubectl get nodes -o custom-columns=\\\"LOCATION:.metadata.labels['node\\.greeneye\\.ag/location'],NAME:.metadata.name,STATUS:.status.conditions[?(@.type=='Ready')].status,VERSION:.status.nodeInfo.kubeletVersion,INTERNAL-IP:.status.addresses[?(@.type=='InternalIP')].address,TAINTS:.spec.taints\\\" --sort-by=.metadata.labels.'node\\.greeneye\\.ag/location'\"";
     ponds = "kubectl get nodes -o custom-columns=\"LOCATION:.metadata.labels['node\\.greeneye\\.ag/location'],NAME:.metadata.name\" --no-headers | fzf --select-1 --query=\"\${1:-}\" | awk '{print $2}' | xargs -I {} kubectl get pods --all-namespaces -o wide --field-selector spec.nodeName={}";
   };
 
