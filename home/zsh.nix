@@ -27,6 +27,8 @@
       # historySubstringSearch settings
       export HISTORY_SUBSTRING_SEARCH_PREFIXED=true
       export HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=true
+
+      export PATH=/home/ori/.opencode/bin:$PATH
     '';
   };
 }
