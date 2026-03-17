@@ -28,12 +28,12 @@ return {
 		vim.keymap.set("n", "<leader>sD", snacks.picker.diagnostics)
 		vim.keymap.set("n", "<leader>sd", snacks.picker.diagnostics_buffer)
 
-		vim.keymap.set("n", "<leader>gL", snacks.picker.git_log)
+		vim.keymap.set("n", "<leader>gl", snacks.picker.git_log)
 		vim.keymap.set("n", "<leader>gS", snacks.picker.git_stash)
 		vim.keymap.set("n", "<leader>gb", snacks.picker.git_branches)
 		vim.keymap.set("n", "<leader>gd", snacks.picker.git_diff)
 		vim.keymap.set("n", "<leader>gf", snacks.picker.git_log_file)
-		vim.keymap.set("n", "<leader>gl", snacks.picker.git_log_line)
+		vim.keymap.set("n", "<leader>gL", snacks.picker.git_log_line)
 		vim.keymap.set("n", "<leader>gs", snacks.picker.git_status)
 
 		vim.keymap.set({ "n", "t" }, "<c-x>", function()
