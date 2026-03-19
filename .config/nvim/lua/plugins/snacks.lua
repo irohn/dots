@@ -36,6 +36,8 @@ return {
 		vim.keymap.set("n", "<leader>gL", snacks.picker.git_log_line)
 		vim.keymap.set("n", "<leader>gs", snacks.picker.git_status)
 
+		vim.keymap.set("n", "<leader>th", snacks.picker.colorschemes)
+
 		vim.keymap.set({ "n", "t" }, "<c-x>", function()
 			snacks.terminal()
 		end)
