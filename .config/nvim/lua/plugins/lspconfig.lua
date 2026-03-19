@@ -1,5 +1,6 @@
 return {
 	"nvim-lspconfig",
+	provider = "nix",
 	config = function()
 		local nix_util = require("nix.util")
 

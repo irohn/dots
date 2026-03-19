@@ -1,5 +1,6 @@
 return {
 	"conform-nvim",
+	provider = "nix",
 	lazy = true,
 	init = function()
 		vim.o.formatexpr = "v:lua.require'conform'.formatexpr()"

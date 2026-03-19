@@ -1,12 +1,13 @@
 return {
 	"oil-nvim",
+	provider = "nix",
 	lazy = false,
 	init = function()
 		vim.g.loaded_netrw = 1
 		vim.g.loaded_netrwplugin = 1
 	end,
 	dependencies = {
-		{ "nvim-web-devicons", lazy = false },
+		{ "nvim-web-devicons", provider = "nix", lazy = false },
 	},
 	config = function()
 		require("oil").setup({

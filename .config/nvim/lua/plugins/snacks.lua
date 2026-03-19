@@ -1,5 +1,6 @@
 return {
 	"snacks-nvim",
+	provider = "nix",
 	async = false,
 	config = function()
 		local snacks = require("snacks")

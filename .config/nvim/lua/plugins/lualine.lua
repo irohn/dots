@@ -1,5 +1,6 @@
 return {
 	"lualine-nvim",
+	provider = "nix",
 	async = false,
 	config = function()
 		require("lualine").setup({

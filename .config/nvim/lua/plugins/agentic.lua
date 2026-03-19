@@ -1,6 +1,5 @@
 return {
-	"carlos-algms/agentic.nvim",
-	source = "github",
+	"https://github.com/carlos-algms/agentic.nvim",
 	config = function()
 		local nix_util = require("nix.util")
 

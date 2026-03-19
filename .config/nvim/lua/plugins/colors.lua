@@ -1,7 +1,5 @@
 return {
-	{
-		"RRethy/base16-nvim",
-		source = "github",
-		async = false,
-	},
+	{ "https://github.com/rebelot/kanagawa.nvim" },
+	{ "https://github.com/folke/tokyonight.nvim" },
+	{ "https://github.com/catppuccin/nvim", name = "catppuccin" },
 }

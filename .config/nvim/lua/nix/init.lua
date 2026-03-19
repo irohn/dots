@@ -124,15 +124,8 @@ local function plugin_link_path(name)
 	return join(ensure_pack_dir(), name)
 end
 
-local function github_repo_name(repo)
-	return (repo:gsub("%.git$", ""):match("/([^/]+)$") or repo)
-end
-
-local function clone_dir_name(spec)
-	if type(spec.repo) == "string" and spec.repo ~= "" then
-		return spec.repo:gsub("%.git$", ""):gsub("[/\\:]", "__")
-	end
-	return spec.name
+local function plugin_pack_path(name)
+	return join(vim.fn.stdpath("data"), "site", "pack", "core", "opt", name)
 end
 
 local function existing_link(spec)
@@ -143,6 +136,37 @@ local function existing_link(spec)
 	return nil
 end
 
+local function plugin_exists(spec)
+	if spec.provider == "nix" or (type(spec.dir) == "string" and spec.dir ~= "") then
+		return existing_link(spec) ~= nil
+	end
+
+	return exists(plugin_pack_path(spec.name))
+end
+
+local function load_plugin(name)
+	vim.cmd("packadd " .. vim.fn.fnameescape(name))
+end
+
+local function github_url(identifier)
+	if type(identifier) ~= "string" or identifier == "" then
+		return nil
+	end
+	if identifier:match("^%a[%w+.-]*://") or identifier:match("^git@") then
+		return identifier
+	end
+	return ("https://github.com/%s"):format(identifier)
+end
+
+local function external_plugin_name(src)
+	if type(src) ~= "string" or src == "" then
+		return nil
+	end
+
+	local normalized = src:gsub("/+$", ""):gsub("%.git$", "")
+	return normalized:match("/([^/]+)$") or normalized
+end
+
 local function build_plugin(spec)
 	if type(spec.dir) == "string" and spec.dir ~= "" then
 		if not exists(spec.dir) then
@@ -151,42 +175,6 @@ local function build_plugin(spec)
 		end
 
 		local root = resolve_plugin_root(spec.dir, spec.name) or spec.dir
-		local opt_dir = ensure_pack_dir()
-		local link_path = join(opt_dir, spec.name)
-		if exists(link_path) then
-			vim.fn.delete(link_path, "rf")
-		end
-
-		local ok, err = uv.fs_symlink(root, link_path)
-		if not ok then
-			vim.notify(
-				("nix.nvim: failed to link %s -> %s (%s)"):format(link_path, root, err or "unknown"),
-				vim.log.levels.ERROR
-			)
-			return nil
-		end
-
-		return link_path
-	end
-
-	if type(spec.url) == "string" and spec.url ~= "" then
-		local clone_dir = join(vim.fn.stdpath("data"), "nix", "repos", clone_dir_name(spec))
-		if not exists(clone_dir) then
-			vim.fn.mkdir(vim.fn.fnamemodify(clone_dir, ":h"), "p")
-			local clone = vim.system({ "git", "clone", "--filter=blob:none", spec.url, clone_dir }, { text = true }):wait()
-			if clone.code ~= 0 then
-				vim.notify(("nix.nvim: failed to clone %s\n%s"):format(spec.url, clone.stderr or ""), vim.log.levels.ERROR)
-				return nil
-			end
-		else
-			local pull = vim.system({ "git", "-C", clone_dir, "pull", "--ff-only" }, { text = true }):wait()
-			if pull.code ~= 0 then
-				vim.notify(("nix.nvim: failed to update %s\n%s"):format(spec.url, pull.stderr or ""), vim.log.levels.ERROR)
-				return nil
-			end
-		end
-
-		local root = resolve_plugin_root(clone_dir, spec.name) or clone_dir
 		local opt_dir = ensure_pack_dir()
 		local link_path = join(opt_dir, spec.name)
 		if exists(link_path) then
@@ -249,52 +237,6 @@ local function build_plugin_async(spec, cb)
 		return
 	end
 
-	if type(spec.url) == "string" and spec.url ~= "" then
-		local clone_dir = join(vim.fn.stdpath("data"), "nix", "repos", clone_dir_name(spec))
-		vim.fn.mkdir(vim.fn.fnamemodify(clone_dir, ":h"), "p")
-
-		local cmd
-		if exists(clone_dir) then
-			cmd = { "git", "-C", clone_dir, "pull", "--ff-only" }
-		else
-			cmd = { "git", "clone", "--filter=blob:none", spec.url, clone_dir }
-		end
-
-		vim.system(cmd, { text = true }, function(proc)
-			vim.schedule(function()
-				if proc.code ~= 0 then
-					local action = exists(clone_dir) and "update" or "clone"
-					vim.notify(
-						("nix.nvim: failed to %s %s\n%s"):format(action, spec.url, proc.stderr or ""),
-						vim.log.levels.ERROR
-					)
-					cb(nil)
-					return
-				end
-
-				local root = resolve_plugin_root(clone_dir, spec.name) or clone_dir
-				local opt_dir = ensure_pack_dir()
-				local link_path = join(opt_dir, spec.name)
-				if exists(link_path) then
-					vim.fn.delete(link_path, "rf")
-				end
-
-				local ok, err = uv.fs_symlink(root, link_path)
-				if not ok then
-					vim.notify(
-						("nix.nvim: failed to link %s -> %s (%s)"):format(link_path, root, err or "unknown"),
-						vim.log.levels.ERROR
-					)
-					cb(nil)
-					return
-				end
-
-				cb(link_path)
-			end)
-		end)
-		return
-	end
-
 	local target = (spec.nixpkgs or "nixpkgs") .. "#vimPlugins." .. spec.name
 	util.build_async({
 		target = target,
@@ -337,31 +279,50 @@ end
 
 local function normalize_spec(input)
 	if type(input) == "string" then
-		return { name = input, source = "nixpkgs", lazy = false, async = true, dependencies = {} }
+		local src = github_url(input)
+		return {
+			name = external_plugin_name(src),
+			src = src,
+			provider = "pack",
+			lazy = false,
+			async = true,
+			dependencies = {},
+		}
 	end
 
 	local spec = vim.deepcopy(input)
 	local explicit_name = type(spec.name) == "string" and spec.name ~= ""
 	local identifier = spec[1]
 	spec[1] = nil
-	spec.source = spec.source or (spec.github and "github" or "nixpkgs")
 
-	if spec.source == "github" then
-		spec.repo = spec.repo or spec.github or identifier or spec.name
-		if type(spec.repo) ~= "string" or spec.repo == "" then
-			error("nix.nvim: github plugin spec must provide an owner/repo identifier")
+	if spec.source ~= nil and spec.provider == nil then
+		if spec.source == "github" or spec.source == "pack" then
+			spec.provider = "pack"
+		elseif spec.source == "nixpkgs" or spec.source == "nix" then
+			spec.provider = "nix"
+		else
+			error(("nix.nvim: unsupported plugin source '%s'"):format(tostring(spec.source)))
 		end
-		spec.repo = spec.repo:gsub("%.git$", "")
-		if not explicit_name then
-			spec.name = github_repo_name(spec.repo)
-		end
-		if spec.url == nil then
-			spec.url = ("https://github.com/%s.git"):format(spec.repo)
-		end
-	elseif spec.source == "nixpkgs" then
+	end
+	spec.source = nil
+
+	spec.provider = spec.provider or "pack"
+
+	if spec.provider == "nix" then
 		spec.name = spec.name or identifier
+	elseif spec.provider == "pack" then
+		spec.src = spec.src or spec.url or spec.github or identifier
+		spec.url = nil
+		spec.github = nil
+		if type(spec.src) ~= "string" or spec.src == "" then
+			error("nix.nvim: external plugin spec must provide a source")
+		end
+		spec.src = github_url(spec.src)
+		if not explicit_name then
+			spec.name = external_plugin_name(spec.src)
+		end
 	else
-		error(("nix.nvim: unsupported plugin source '%s'"):format(tostring(spec.source)))
+		error(("nix.nvim: unsupported plugin provider '%s'"):format(tostring(spec.provider)))
 	end
 
 	if type(spec.name) ~= "string" or spec.name == "" then
@@ -401,16 +362,35 @@ end
 
 local function ensure_installed(spec, opts)
 	opts = opts or {}
-	if not opts.force and state.installed[spec.name] and exists(state.installed[spec.name]) then
+	if not opts.force and state.installed[spec.name] and plugin_exists(spec) then
 		return state.installed[spec.name]
 	end
 
 	if not opts.force then
-		local link_path = existing_link(spec)
-		if link_path then
-			state.installed[spec.name] = link_path
-			return link_path
+		if plugin_exists(spec) then
+			local path = spec.provider == "nix" and existing_link(spec) or plugin_pack_path(spec.name)
+			state.installed[spec.name] = path
+			return path
 		end
+	end
+
+	if spec.provider ~= "nix" and type(spec.dir) ~= "string" then
+		local ok, err = pcall(vim.pack.add, {
+			{
+				src = spec.src,
+				name = spec.name,
+				version = spec.version,
+				data = spec.data,
+			},
+		}, { confirm = false, load = false })
+		if not ok then
+			vim.notify(("nix.nvim: failed to install %s\n%s"):format(spec.name, err), vim.log.levels.ERROR)
+			return nil
+		end
+
+		local path = plugin_pack_path(spec.name)
+		state.installed[spec.name] = path
+		return path
 	end
 
 	local link_path = build_plugin(spec)
@@ -440,16 +420,16 @@ end
 
 local function ensure_installed_async(spec, cb, opts)
 	opts = opts or {}
-	if not opts.force and state.installed[spec.name] and exists(state.installed[spec.name]) then
+	if not opts.force and state.installed[spec.name] and plugin_exists(spec) then
 		cb(state.installed[spec.name])
 		return
 	end
 
 	if not opts.force then
-		local link_path = existing_link(spec)
-		if link_path then
-			state.installed[spec.name] = link_path
-			cb(link_path)
+		if plugin_exists(spec) then
+			local path = spec.provider == "nix" and existing_link(spec) or plugin_pack_path(spec.name)
+			state.installed[spec.name] = path
+			cb(path)
 			return
 		end
 	end
@@ -461,11 +441,21 @@ local function ensure_installed_async(spec, cb, opts)
 
 	state.installing[spec.name] = { cb }
 	if opts.force then
-		local link_path = plugin_link_path(spec.name)
-		if exists(link_path) then
-			vim.fn.delete(link_path, "rf")
+		if spec.provider == "nix" or type(spec.dir) == "string" then
+			local link_path = plugin_link_path(spec.name)
+			if exists(link_path) then
+				vim.fn.delete(link_path, "rf")
+			end
 		end
 		state.installed[spec.name] = nil
+	end
+
+	if spec.provider ~= "nix" and type(spec.dir) ~= "string" then
+		vim.schedule(function()
+			local path = ensure_installed(spec, opts)
+			cb(path)
+		end)
+		return
 	end
 
 	build_plugin_async(spec, function(link_path)
@@ -508,7 +498,7 @@ function M.load(name)
 		return false
 	end
 
-	vim.cmd("packadd " .. vim.fn.fnameescape(name))
+	load_plugin(name)
 	state.loaded[name] = true
 	state.loading[name] = nil
 
@@ -576,7 +566,7 @@ function M.load_async(name, cb)
 					return
 				end
 
-				vim.cmd("packadd " .. vim.fn.fnameescape(name))
+				load_plugin(name)
 				if type(spec.config) == "function" then
 					local ok, err = pcall(spec.config)
 					if not ok then
@@ -623,16 +613,50 @@ function M.update(name)
 	end
 
 	vim.notify(("nix.nvim: updating %d plugin(s) in background"):format(#names), vim.log.levels.INFO)
-	local i = 1
+	local nix_names = {}
+	local pack_names = {}
+	for _, plugin_name in ipairs(names) do
+		local spec = state.specs[plugin_name]
+		if spec.provider == "nix" or type(spec.dir) == "string" then
+			table.insert(nix_names, plugin_name)
+		else
+			table.insert(pack_names, plugin_name)
+		end
+	end
+
 	local updated = 0
 	local failed = 0
+	local function finish_if_done()
+		if #nix_names > 0 then
+			return
+		end
+		vim.notify(("nix.nvim: update complete (%d ok, %d failed)"):format(updated, failed), vim.log.levels.INFO)
+	end
+
+	if #pack_names > 0 then
+		local ok, err = pcall(vim.pack.update, pack_names, { force = true })
+		if ok then
+			updated = updated + #pack_names
+		else
+			failed = failed + #pack_names
+			vim.notify(("nix.nvim: vim.pack update failed\n%s"):format(err), vim.log.levels.ERROR)
+		end
+	end
+
+	if #nix_names == 0 then
+		finish_if_done()
+		return
+	end
+
+	local i = 1
 	local function next_update()
-		if i > #names then
-			vim.notify(("nix.nvim: update complete (%d ok, %d failed)"):format(updated, failed), vim.log.levels.INFO)
+		if i > #nix_names then
+			nix_names = {}
+			finish_if_done()
 			return
 		end
 
-		local plugin_name = names[i]
+		local plugin_name = nix_names[i]
 		i = i + 1
 		ensure_installed_async(state.specs[plugin_name], function(link_path)
 			if link_path then
@@ -650,7 +674,7 @@ end
 function M.status()
 	local lines = { "nix.nvim plugin status:" }
 	for _, name in ipairs(state.order) do
-		local installed = existing_link(state.specs[name]) ~= nil
+		local installed = plugin_exists(state.specs[name])
 		local loaded = state.loaded[name] == true
 		local marker = installed and "installed" or "missing"
 		if loaded then
@@ -688,7 +712,7 @@ function M.list_installed()
 	local lines = { "nix.nvim installed plugins:" }
 	local count = 0
 	for _, name in ipairs(state.order) do
-		if existing_link(state.specs[name]) then
+		if plugin_exists(state.specs[name]) then
 			count = count + 1
 			table.insert(lines, "- " .. name)
 		end

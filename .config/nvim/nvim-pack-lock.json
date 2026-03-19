@@ -1,0 +1,20 @@
+{
+  "plugins": {
+    "agentic.nvim": {
+      "rev": "9f3fc1cc64c0107fe08e77f9924cbffda54a9f17",
+      "src": "https://github.com/carlos-algms/agentic.nvim"
+    },
+    "catppuccin": {
+      "rev": "384f304c8b04664c9e0091fbfb3923c5f97c1bcf",
+      "src": "https://github.com/catppuccin/nvim"
+    },
+    "kanagawa.nvim": {
+      "rev": "aef7f5cec0a40dbe7f3304214850c472e2264b10",
+      "src": "https://github.com/rebelot/kanagawa.nvim"
+    },
+    "tokyonight.nvim": {
+      "rev": "5da1b76e64daf4c5d410f06bcb6b9cb640da7dfd",
+      "src": "https://github.com/folke/tokyonight.nvim"
+    }
+  }
+}
