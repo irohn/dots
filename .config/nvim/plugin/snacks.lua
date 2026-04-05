@@ -26,11 +26,14 @@ vim.keymap.set("n", "<leader>sd", snacks.picker.diagnostics_buffer)
 
 vim.keymap.set("n", "<leader>gl", snacks.picker.git_log)
 vim.keymap.set("n", "<leader>gS", snacks.picker.git_stash)
-vim.keymap.set("n", "<leader>gb", snacks.picker.git_branches)
+vim.keymap.set("n", "<leader>gB", snacks.picker.git_branches)
 vim.keymap.set("n", "<leader>gd", snacks.picker.git_diff)
 vim.keymap.set("n", "<leader>gf", snacks.picker.git_log_file)
 vim.keymap.set("n", "<leader>gL", snacks.picker.git_log_line)
 vim.keymap.set("n", "<leader>gs", snacks.picker.git_status)
+vim.keymap.set({ "n", "v" }, "<leader>gc", function()
+	snacks.gitbrowse({ what = "commit" })
+end)
 
 vim.keymap.set("n", "<leader>th", snacks.picker.colorschemes)
 
