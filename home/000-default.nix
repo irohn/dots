@@ -25,6 +25,7 @@
     unixtools.watch
     fd
     ripgrep
+    nodejs
   ];
 
   # Allow unfree packages.

@@ -29,6 +29,9 @@
       export HISTORY_SUBSTRING_SEARCH_ENSURE_UNIQUE=true
 
       export PATH=/home/ori/.opencode/bin:$PATH
+      export PATH=/home/ori/.npm-global/bin:$PATH
+      export PATH="$PATH:/home/ori/.local/bin"
+      export PATH="/home/ori/.local/share/bob/nvim-bin:$PATH"
     '';
   };
 }
