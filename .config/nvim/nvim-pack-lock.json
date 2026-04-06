@@ -1,13 +1,5 @@
 {
   "plugins": {
-    "agentic.nvim": {
-      "rev": "9f3fc1cc64c0107fe08e77f9924cbffda54a9f17",
-      "src": "https://github.com/carlos-algms/agentic.nvim"
-    },
-    "catppuccin": {
-      "rev": "384f304c8b04664c9e0091fbfb3923c5f97c1bcf",
-      "src": "https://github.com/catppuccin/nvim"
-    },
     "conform.nvim": {
       "rev": "086a40dc7ed8242c03be9f47fbcee68699cc2395",
       "src": "https://github.com/stevearc/conform.nvim"
@@ -16,9 +8,9 @@
       "rev": "aef7f5cec0a40dbe7f3304214850c472e2264b10",
       "src": "https://github.com/rebelot/kanagawa.nvim"
     },
-    "koda.nvim": {
-      "rev": "a560a332ccc1eb2caacb280a390213bb9f37b3cb",
-      "src": "https://github.com/oskarnurm/koda.nvim"
+    "koda": {
+      "rev": "d3760f9d8d1704c4a3789552ed8fde41a0bcbb1c",
+      "src": "https://github.com/irohn/koda"
     },
     "lualine.nvim": {
       "rev": "8811f3f3f4dc09d740c67e9ce399e7a541e2e5b2",
@@ -29,7 +21,7 @@
       "src": "https://github.com/omacom-io/lumon.nvim"
     },
     "nvim-lspconfig": {
-      "rev": "9ccd58a7949091c0cc2777d4e92a45a209c808c1",
+      "rev": "a776085e04f7b15d0b59fae2244df07d98360ab4",
       "src": "https://github.com/neovim/nvim-lspconfig"
     },
     "oil.nvim": {
@@ -43,10 +35,6 @@
     "sora": {
       "rev": "7362774d3d42e0ac0944168c3ce83676c081a178",
       "src": "https://github.com/Aejkatappaja/sora"
-    },
-    "tokyonight.nvim": {
-      "rev": "5da1b76e64daf4c5d410f06bcb6b9cb640da7dfd",
-      "src": "https://github.com/folke/tokyonight.nvim"
     }
   }
 }

@@ -9,7 +9,8 @@ vim.pack.add({
 	"https://github.com/nvim-lualine/lualine.nvim",
 
 	-- colorschemes
+	"https://github.com/irohn/koda",
 	"https://github.com/Aejkatappaja/sora",
 	"https://github.com/omacom-io/lumon.nvim",
-	"https://github.com/oskarnurm/koda.nvim",
+	"https://github.com/rebelot/kanagawa.nvim",
 })
