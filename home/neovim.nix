@@ -3,7 +3,7 @@
     fd
     gcc
     gnumake
-    neovim
+    # neovim
     ripgrep
     tree-sitter
     lazygit

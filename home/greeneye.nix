@@ -10,18 +10,20 @@
     rev = "ac82d6f751e275a0e40cc81fcb173f0af20cc19b";
   };
 in {
-  home.packages = with pkgs; [
-    coreutils
-    gawk
-    fzf
-    fd
-    ripgrep
-    kubectl
-    tailscale
-    vault
-    ] ++ [
-    pkgs-stable.azure-cli
-  ];
+  home.packages = with pkgs;
+    [
+      coreutils
+      gawk
+      fzf
+      fd
+      ripgrep
+      kubectl
+      tailscale
+      vault
+    ]
+    ++ [
+      pkgs-stable.azure-cli
+    ];
 
   home.file = {
     ".config/greeneye/bin" = {
