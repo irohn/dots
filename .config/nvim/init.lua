@@ -29,9 +29,15 @@ vim.keymap.set("n", "<leader>fg", function()
 		true
 	)
 end, { silent = true })
-vim.keymap.set("n", "<leader>ff", function()
-	local keys = vim.keycode(":find **<Tab><C-n><C-p>") -- workaround to go back to recursive search
+local function open_find_files_prompt(path_prefix)
+	local target = path_prefix and (vim.fn.fnameescape(path_prefix) .. "/**") or "**"
+	local keys = vim.keycode(":find " .. target .. "<Tab><C-n><C-p>") -- workaround to go back to recursive search
 	vim.fn.feedkeys(keys, "t")
+end
+_G.open_find_files_prompt = open_find_files_prompt
+
+vim.keymap.set("n", "<leader>ff", function()
+	open_find_files_prompt()
 end, { silent = true })
 vim.keymap.set("n", "<leader>fb", function()
 	local keys = vim.api.nvim_replace_termcodes(":b **<Tab>", true, false, true)
