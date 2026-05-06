@@ -121,17 +121,34 @@ local function open_entry(root, entry, source_tab, close_current_tab)
 end
 
 local function close_output()
+	local buf = vim.api.nvim_get_current_buf()
 	local has_other_tabs = #vim.api.nvim_list_tabpages() > 1
 	local only_window_in_tab = #vim.api.nvim_tabpage_list_wins(0) == 1
 	if has_other_tabs and only_window_in_tab then
 		vim.cmd.tabclose()
+		if vim.api.nvim_buf_is_valid(buf) then
+			pcall(vim.api.nvim_buf_delete, buf, { force = true })
+		end
 		return
 	end
 
 	local ok = pcall(vim.cmd.close)
-	if not ok then
-		vim.cmd.bdelete()
+	if not ok and vim.api.nvim_buf_is_valid(buf) then
+		pcall(vim.api.nvim_buf_delete, buf, { force = true })
+	elseif vim.api.nvim_buf_is_valid(buf) then
+		pcall(vim.api.nvim_buf_delete, buf, { force = true })
 	end
+end
+
+local function go_back_or_close(buf, prev_buf)
+	if prev_buf and vim.api.nvim_buf_is_valid(prev_buf) then
+		vim.api.nvim_set_current_buf(prev_buf)
+		if vim.api.nvim_buf_is_valid(buf) then
+			pcall(vim.api.nvim_buf_delete, buf, { force = true })
+		end
+		return
+	end
+	close_output()
 end
 
 local function open_output(title, lines, entries, root, opts)
@@ -142,24 +159,40 @@ local function open_output(title, lines, entries, root, opts)
 	opts = opts or {}
 	entries = entries or {}
 	local source_tab = vim.api.nvim_get_current_tabpage()
-	vim.cmd.tabnew()
+	local prev_buf = opts.back_buf or (opts.reuse_current_tab and vim.api.nvim_get_current_buf() or nil)
+	if opts.reuse_current_tab then
+		local buf = vim.api.nvim_create_buf(false, true)
+		vim.api.nvim_set_current_buf(buf)
+	else
+		vim.cmd.tabnew()
+	end
 
 	local buf = vim.api.nvim_get_current_buf()
 	pcall(vim.api.nvim_buf_set_name, buf, ("git://%s/%d"):format(title:gsub("%s+", "-"), uv.hrtime()))
 	vim.bo[buf].buftype = "nofile"
-	vim.bo[buf].bufhidden = "wipe"
+	vim.bo[buf].bufhidden = "hide"
 	vim.bo[buf].buflisted = false
 	vim.bo[buf].swapfile = false
 	vim.bo[buf].filetype = "git"
+	vim.b[buf].git_back_buf = prev_buf
 
 	vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 	vim.bo[buf].modifiable = false
 	vim.bo[buf].readonly = true
 
-	vim.keymap.set("n", "q", close_output, { buffer = buf, nowait = true, silent = true })
+	vim.keymap.set("n", "q", function()
+		go_back_or_close(buf, prev_buf)
+	end, { buffer = buf, nowait = true, silent = true })
+	vim.keymap.set("n", "<Esc>", function()
+		go_back_or_close(buf, prev_buf)
+	end, { buffer = buf, nowait = true, silent = true })
 	vim.keymap.set("n", "<CR>", function()
 		local row = vim.api.nvim_win_get_cursor(0)[1]
-		local entry = entries[row] or parse_file_reference(vim.api.nvim_get_current_line(), root)
+		local line = vim.api.nvim_get_current_line()
+		local entry = entries[row] or parse_file_reference(line, root)
+		if opts.on_enter then
+			return opts.on_enter(entry, line, source_tab)
+		end
 		open_entry(root, entry, source_tab, opts.close_tab_on_open)
 	end, { buffer = buf, silent = true })
 
@@ -231,6 +264,62 @@ local function parse_log_output(output, default_path)
 	end
 
 	return lines, entries
+end
+
+local function parse_show_stat_output(output)
+	local lines, entries = parse_log_output(output)
+
+	for i, line in ipairs(lines) do
+		if not entries[i] then
+			local path = vim.trim((line:match("^%s*(.-)%s+|%s+%d+") or ""))
+			if path ~= "" and not path:match("^%d+ files? changed") then
+				entries[i] = { path = path }
+			end
+		end
+	end
+
+	return lines, entries
+end
+
+local function open_commit_file_diff(root, commit, path, back_buf)
+	local output = run_git(root, { "--no-pager", "show", commit, "--", path })
+	if not output then
+		return
+	end
+
+	local lines, entries = parse_log_output(output, path)
+	if #lines == 0 then
+		notify("No git diff output")
+		return
+	end
+
+	open_output(("git show %s -- %s"):format(commit, path), lines, entries, root, {
+		reuse_current_tab = true,
+		back_buf = back_buf,
+	})
+end
+
+local function open_commit_show(root, commit)
+	local output = run_git(root, { "--no-pager", "show", "--stat", commit })
+	if not output then
+		return
+	end
+
+	local lines, entries = parse_show_stat_output(output)
+	if #lines == 0 then
+		notify("No git show output")
+		return
+	end
+
+	open_output(("git show %s"):format(commit), lines, entries, root, {
+		reuse_current_tab = true,
+		on_enter = function(entry, line, source_tab)
+			if entry and entry.path then
+				return open_commit_file_diff(root, commit, entry.path, vim.b.git_back_buf or vim.api.nvim_get_current_buf())
+			end
+			open_entry(root, parse_file_reference(line, root), source_tab)
+		end,
+	})
 end
 
 local function open_current_line_log(first_line, last_line)
@@ -307,7 +396,21 @@ vim.keymap.set("n", "<leader>gL", function()
 		return
 	end
 
-	open_output("git log", lines, nil, root)
+	local entries = {}
+	for i, line in ipairs(lines) do
+		local commit = line:match("^(%x+)")
+		if commit then
+			entries[i] = { commit = commit }
+		end
+	end
+
+	open_output("git log", lines, entries, root, {
+		on_enter = function(entry)
+			if entry and entry.commit then
+				open_commit_show(root, entry.commit)
+			end
+		end,
+	})
 end, { desc = "git log" })
 
 vim.keymap.set("n", "<leader>gl", function()
