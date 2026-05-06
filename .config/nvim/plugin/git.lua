@@ -315,7 +315,12 @@ local function open_commit_show(root, commit)
 		reuse_current_tab = true,
 		on_enter = function(entry, line, source_tab)
 			if entry and entry.path then
-				return open_commit_file_diff(root, commit, entry.path, vim.b.git_back_buf or vim.api.nvim_get_current_buf())
+				return open_commit_file_diff(
+					root,
+					commit,
+					entry.path,
+					vim.b.git_back_buf or vim.api.nvim_get_current_buf()
+				)
 			end
 			open_entry(root, parse_file_reference(line, root), source_tab)
 		end,
