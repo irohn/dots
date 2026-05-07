@@ -49,9 +49,6 @@ vim.keymap.set("n", "<esc>", "<cmd>nohlsearch<cr><esc>")
 vim.keymap.set("t", "<esc><esc>", "<c-\\><c-n>")
 vim.keymap.set("t", "<c-w>", "<c-\\><c-n><c-w>")
 vim.keymap.set("n", "-", vim.cmd.Explore)
-vim.keymap.set("n", "<c-x>", function()
-	print("terminal")
-end)
 
 vim.api.nvim_create_autocmd("TextYankPost", {
 	group = vim.api.nvim_create_augroup("irohn/highlight-on-yank", { clear = true }),
