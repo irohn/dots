@@ -32,12 +32,13 @@ local function git_root(dir)
 	return vim.trim(result.stdout or "")
 end
 
-local function run_git(root, args)
+local function run_git(root, args, allowed_codes)
 	local command = { "git", "-C", root }
 	vim.list_extend(command, args)
 
+	allowed_codes = allowed_codes or { 0 }
 	local result = vim.system(command, { text = true }):wait()
-	if result.code ~= 0 then
+	if not vim.tbl_contains(allowed_codes, result.code) then
 		local message = vim.trim((result.stderr or "") .. "\n" .. (result.stdout or ""))
 		notify(message ~= "" and message or "Git command failed", vim.log.levels.ERROR)
 		return nil
@@ -195,6 +196,12 @@ local function open_output(title, lines, entries, root, opts)
 		end
 		open_entry(root, entry, source_tab, opts.close_tab_on_open)
 	end, { buffer = buf, silent = true })
+	if opts.on_diff then
+		vim.keymap.set("n", "gd", function()
+			local row = vim.api.nvim_win_get_cursor(0)[1]
+			opts.on_diff(entries[row], vim.api.nvim_get_current_line())
+		end, { buffer = buf, silent = true })
+	end
 
 	return true
 end
@@ -215,13 +222,14 @@ local function parse_status(output)
 			local old_path = parts[i + 1]
 			line = status .. " " .. old_path .. " -> " .. path
 			i = i + 2
+			lines[#lines + 1] = line
+			entries[#lines] = { path = path, old_path = old_path, status = status }
 		else
 			line = status .. " " .. path
 			i = i + 1
+			lines[#lines + 1] = line
+			entries[#lines] = { path = path, status = status }
 		end
-
-		lines[#lines + 1] = line
-		entries[#lines] = { path = path }
 	end
 
 	return lines, entries
@@ -327,6 +335,35 @@ local function open_commit_show(root, commit)
 	})
 end
 
+local function open_status_file_diff(root, entry)
+	if not entry or not entry.path then
+		return
+	end
+
+	local output
+	if entry.status == "??" then
+		local target = absolute_path(root, entry.path)
+		if not uv.fs_stat(target) then
+			notify(("File %s was not found."):format(entry.path), vim.log.levels.WARN)
+			return
+		end
+		output = run_git(root, { "--no-pager", "diff", "--no-index", "--", "/dev/null", target }, { 0, 1 })
+	else
+		output = run_git(root, { "--no-pager", "diff", "HEAD", "--", entry.path })
+	end
+	if not output then
+		return
+	end
+
+	local lines, entries = parse_log_output(output, entry.path)
+	if #lines == 0 then
+		notify("No git diff output")
+		return
+	end
+
+	open_output(("git diff %s"):format(entry.path), lines, entries, root)
+end
+
 local function open_current_line_log(first_line, last_line)
 	local file = vim.api.nvim_buf_get_name(0)
 	if vim.bo.buftype ~= "" or file == "" then
@@ -381,7 +418,12 @@ vim.keymap.set("n", "<leader>gs", function()
 	end
 
 	set_status_quickfix(root, lines, entries)
-	open_output("git status", lines, entries, root, { close_tab_on_open = true })
+	open_output("git status", lines, entries, root, {
+		close_tab_on_open = true,
+		on_diff = function(entry)
+			open_status_file_diff(root, entry)
+		end,
+	})
 end, { desc = "git status" })
 
 vim.keymap.set("n", "<leader>gL", function()
