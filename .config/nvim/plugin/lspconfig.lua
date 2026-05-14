@@ -7,6 +7,7 @@ vim.lsp.enable({
 	"csharp_ls",
 	"dartls",
 	"denols",
+	"earthlyls",
 	"elixirls",
 	"eslint",
 	"fsharp_language_server",
