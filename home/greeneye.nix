@@ -46,10 +46,6 @@ in {
     };
   };
 
-  programs.ssh = {
-    includes = ["~/.ssh/greeneye_config"];
-  };
-
   programs.git = {
     includes = [
       {
