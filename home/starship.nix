@@ -56,7 +56,7 @@
 
       nix_shell = {
         format = "[$symbol$state]($style) ";
-        symbol = "❄️ ";
+        symbol = "󱄅 ";
       };
 
       nodejs = {
