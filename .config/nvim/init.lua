@@ -2,6 +2,9 @@ vim.g.mapleader = " "
 vim.g.maplocalleader = " "
 
 vim.o.cursorline = true
+vim.o.clipboard = "unnamedplus"
+vim.o.ignorecase = true
+vim.o.smartcase = true
 vim.o.undofile = true
 vim.o.splitbelow = true
 vim.o.splitright = true
@@ -10,6 +13,12 @@ vim.o.wildmenu = true
 vim.o.wildmode = "longest:full,full"
 vim.opt.wildignore:append({ "./", "../" })
 vim.opt.path:append({ "**" })
+
+local ripgrep = require("irohn.ripgrep")
+local fd = require("irohn.fd")
+
+ripgrep.setup()
+fd.setup()
 
 vim.keymap.set("n", "<leader>/", function()
 	local scope = "%"
@@ -21,6 +30,11 @@ vim.keymap.set("n", "<leader>/", function()
 	)
 end, { silent = true })
 vim.keymap.set("n", "<leader>fg", function()
+	if ripgrep.is_available then
+		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(":silent grep! ", true, false, true), "n", true)
+		return
+	end
+
 	local scope = "**/* **/.*" -- also search dotfiles recursivley
 	local cmd = (":vimgrep // %s | copen"):format(scope)
 	vim.api.nvim_feedkeys(
