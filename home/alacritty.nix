@@ -80,6 +80,16 @@
           mods = "Command";
           chars = "\\u001bl";
         }
+        {
+          key = "H";
+          mods = "Command|Shift";
+          chars = "\\u001bH";
+        }
+        {
+          key = "L";
+          mods = "Command|Shift";
+          chars = "\\u001bL";
+        }
       ];
     };
   };
