@@ -37,7 +37,7 @@ function M.find(cmdarg, _)
 		search_root = "."
 	end
 
-	local command = { "fd", "--type", "f", "--hidden", "--exclude", ".git" }
+	local command = { "fd", "--type", "f", "--hidden", "--full-path", "--exclude", ".git" }
 	if pattern ~= "" then
 		table.insert(command, pattern)
 	end

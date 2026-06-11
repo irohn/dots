@@ -4,6 +4,7 @@ vim.g.maplocalleader = " "
 vim.o.cursorline = true
 vim.o.clipboard = "unnamedplus"
 vim.o.ignorecase = true
+vim.o.number = true
 vim.o.smartcase = true
 vim.o.undofile = true
 vim.o.splitbelow = true
@@ -20,42 +21,80 @@ local fd = require("irohn.fd")
 ripgrep.setup()
 fd.setup()
 
-vim.keymap.set("n", "<leader>/", function()
-	local scope = "%"
-	local cmd = (":vimgrep // %s | copen"):format(scope)
+local function feed_command(cmd, left)
 	vim.api.nvim_feedkeys(
-		vim.api.nvim_replace_termcodes(cmd .. string.rep("<Left>", #scope + 10), true, false, true),
+		vim.api.nvim_replace_termcodes(cmd .. string.rep("<Left>", left or 0), true, false, true),
 		"n",
 		true
 	)
-end, { silent = true })
-vim.keymap.set("n", "<leader>fg", function()
+end
+
+local function open_grep_prompt(scope)
+	if scope == "" then
+		scope = nil
+	end
+
 	if ripgrep.is_available then
-		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes(":silent grep! ", true, false, true), "n", true)
+		local suffix = scope and (" " .. vim.fn.fnameescape(scope)) or ""
+		feed_command(":silent grep! " .. suffix, #suffix)
 		return
 	end
 
-	local scope = "**/* **/.*" -- also search dotfiles recursivley
-	local cmd = (":vimgrep // %s | copen"):format(scope)
-	vim.api.nvim_feedkeys(
-		vim.api.nvim_replace_termcodes(cmd .. string.rep("<Left>", #scope + 10), true, false, true),
-		"n",
-		true
-	)
+	local target = scope and vim.fn.fnameescape(scope) or "**"
+	local cmd = (":vimgrep // %s | copen"):format(target)
+	feed_command(cmd, #target + 10)
+end
+
+vim.keymap.set("n", "<leader>/", function()
+	open_grep_prompt(vim.fn.expand("%"))
+end, { silent = true })
+vim.keymap.set("n", "<leader>fg", function()
+	open_grep_prompt()
 end, { silent = true })
 local function open_find_files_prompt(path_prefix)
-	local target = path_prefix and (vim.fn.fnameescape(path_prefix) .. "/**") or "**"
-	local keys = vim.keycode(":find " .. target .. "<Tab><C-n><C-p>") -- workaround to go back to recursive search
+	local target = path_prefix and (vim.fn.fnameescape(path_prefix) .. "/") or ""
+	local keys = vim.keycode(":FindFiles " .. target)
 	vim.fn.feedkeys(keys, "t")
 end
 _G.open_find_files_prompt = open_find_files_prompt
+
+local function find_files_complete(arglead)
+	if not fd.is_available then
+		return vim.fn.getcompletion(arglead, "file")
+	end
+
+	return fd.find(arglead ~= "" and arglead or "**")
+end
+
+vim.api.nvim_create_user_command("FindFiles", function(opts)
+	local query = opts.args ~= "" and opts.args or "**"
+	local matches = fd.is_available and fd.find(query) or vim.fn.glob(query, false, true)
+
+	if #matches == 0 then
+		vim.notify(("No files match %q"):format(query), vim.log.levels.WARN)
+		return
+	end
+
+	if #matches == 1 then
+		vim.cmd.edit(vim.fn.fnameescape(matches[1]))
+		return
+	end
+
+	local items = vim.tbl_map(function(filename)
+		return { filename = filename }
+	end, matches)
+	vim.fn.setqflist({}, " ", { title = ("FindFiles %s"):format(query), items = items })
+	vim.cmd.copen()
+end, {
+	nargs = "*",
+	complete = find_files_complete,
+})
 
 vim.keymap.set("n", "<leader>ff", function()
 	open_find_files_prompt()
 end, { silent = true })
 vim.keymap.set("n", "<leader>fb", function()
-	local keys = vim.api.nvim_replace_termcodes(":b **<Tab>", true, false, true)
-	vim.fn.feedkeys(keys, "t")
+	vim.fn.feedkeys(vim.keycode(":buffer <Tab>"), "t")
 end, { silent = true })
 vim.keymap.set("v", ">", ">gv")
 vim.keymap.set("v", "<", "<gv")
