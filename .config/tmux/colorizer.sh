@@ -10,7 +10,7 @@ load_from_cache() {
         tmux source-file "$(cat "$CACHE_FILE")"
         exit 0
     else
-        tmux source-file "$HOME/.config/tmux/colors/$DEFAULT_COLORSCHEME.conf"
+        tmux source-file "$HOME/.config/tmux/colors/$DEFAULT_COLORSCHEME"
         exit 0
     fi
 }
