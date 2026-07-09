@@ -14,6 +14,9 @@ set undofile
 set splitbelow
 set splitright
 set termguicolors
+set timeoutlen=300
+set ttimeout
+set ttimeoutlen=10
 set virtualedit=block
 set wildmenu
 set wildmode=longest:full,full
@@ -28,9 +31,7 @@ filetype plugin indent on
 vnoremap > >gv
 vnoremap < <gv
 
-nnoremap <Esc> :nohlsearch<CR><Esc>
-
-tnoremap <Esc><Esc> <C-\><C-n>
+tnoremap <Esc><Esc> :nohlsearch<CR> <C-\><C-n>
 tnoremap <C-w> <C-\><C-n><C-w>
 
 nnoremap - :Explore<CR>
