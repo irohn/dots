@@ -131,4 +131,11 @@ function! s:terminal_settings() abort
   startinsert
 endfunction
 
+" Force transparency whenever a colorscheme is loaded
+autocmd ColorScheme * highlight Normal ctermbg=NONE guibg=NONE
+\ | highlight NonText ctermbg=NONE guibg=NONE
+\ | highlight LineNr ctermbg=NONE guibg=NONE
+\ | highlight SignColumn ctermbg=NONE guibg=NONE
+colorscheme catppuccin
+
 " vim: ts=2 sts=2 sw=2 et
