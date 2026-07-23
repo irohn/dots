@@ -61,7 +61,7 @@ function! s:highlight_yank() abort
   call timer_start(150, {-> execute('silent! call matchdelete(' . l:id . ')')})
 endfunction
 
-" persistent colorscheme
+" Persistent Colorscheme and Transparency Manager
 let s:state_dir = expand('~/.vim/state')
 let s:saved_colorscheme_file = s:state_dir . '/last_colorscheme'
 
@@ -75,15 +75,15 @@ endif
 
 augroup PersistentColorscheme
   autocmd!
-
-  autocmd VimEnter * call s:load_colorscheme()
-  autocmd ColorScheme * call s:save_colorscheme()
+  " Load scheme on boot, then force transparency right after
+  autocmd VimEnter * call s:load_colorscheme() | call s:apply_transparency()
+  " Clean up background and save to disk when you manually change themes later
+  autocmd ColorScheme * call s:apply_transparency() | call s:save_colorscheme()
 augroup END
 
 function! s:load_colorscheme() abort
   let l:saved_colorscheme = get(readfile(s:saved_colorscheme_file), 0, 'default')
   let g:saved_colorscheme = l:saved_colorscheme
-
   try
     execute 'colorscheme ' . l:saved_colorscheme
   catch
@@ -92,6 +92,13 @@ endfunction
 
 function! s:save_colorscheme() abort
   call writefile([get(g:, 'colors_name', 'default')], s:saved_colorscheme_file)
+endfunction
+
+function! s:apply_transparency() abort
+  highlight Normal ctermbg=NONE guibg=NONE
+  highlight NonText ctermbg=NONE guibg=NONE
+  highlight LineNr ctermbg=NONE guibg=NONE
+  highlight SignColumn ctermbg=NONE guibg=NONE
 endfunction
 
 " Force block cursor in all modes
@@ -130,12 +137,5 @@ function! s:terminal_settings() abort
   setlocal bufhidden=hide
   startinsert
 endfunction
-
-" Force transparency whenever a colorscheme is loaded
-autocmd ColorScheme * highlight Normal ctermbg=NONE guibg=NONE
-\ | highlight NonText ctermbg=NONE guibg=NONE
-\ | highlight LineNr ctermbg=NONE guibg=NONE
-\ | highlight SignColumn ctermbg=NONE guibg=NONE
-colorscheme catppuccin
 
 " vim: ts=2 sts=2 sw=2 et
